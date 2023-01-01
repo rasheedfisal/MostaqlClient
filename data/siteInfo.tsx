@@ -4,6 +4,8 @@ interface ILinks {
   title: string;
   icon: JSX.Element;
   links: ILinkItems[];
+  open: boolean;
+  active: boolean;
 }
 interface ILinkItems {
   name: string;
@@ -19,26 +21,43 @@ export const links: ILinks[] = [
         path: "/home",
       },
     ],
+    open: true,
+    active: true,
   },
-
   {
-    title: "Users",
-    icon: <ShieldExclamationIcon className="w-5 h-5" />,
+    title: "Projects",
+    icon: <HomeIcon className="w-5 h-5" />,
     links: [
       {
         name: "Manage",
+        path: "/projects",
+      },
+    ],
+    open: false,
+    active: false,
+  },
+  {
+    title: "Security",
+    icon: <ShieldExclamationIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Users",
         path: "/users",
       },
-    ],
-  },
-  {
-    title: "Roles",
-    icon: <ShieldExclamationIcon className="w-5 h-5" />,
-    links: [
       {
-        name: "Manage",
+        name: "Roles",
         path: "/roles",
       },
+      {
+        name: "Login",
+        path: "/login",
+      },
+      {
+        name: "Register",
+        path: "/register",
+      },
     ],
+    open: false,
+    active: false,
   },
 ];

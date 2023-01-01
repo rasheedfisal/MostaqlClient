@@ -1,3 +1,5 @@
+"use client";
+
 import { AnimatePresence, Cycle } from "framer-motion";
 import React, {
   Dispatch,

@@ -10,17 +10,21 @@ type NavLinkProps = {
 
 function NavLink({ title, icon, open, active, children }: NavLinkProps) {
   const [isOpen, setIsOpen] = useState(open);
+  const [isActive, setIsActive] = useState(active);
   return (
     <div>
       <a
         href="#"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => {
+          setIsOpen((prev) => !prev);
+          setIsActive((prev) => !prev);
+        }}
         className={`flex items-center p-2 text-gray-500 transition-colors rounded-md dark:text-light hover:bg-primary-100 dark:hover:bg-primary ${
-          active || isOpen ? "bg-primary-100 dark:bg-primary" : ""
+          isActive || isOpen ? "bg-primary-100 dark:bg-primary" : ""
         }`}
         role="button"
         aria-haspopup="true"
-        aria-expanded={active || isOpen ? true : false}
+        aria-expanded={isActive || isOpen ? true : false}
       >
         <span aria-hidden="true">
           {/* <svg

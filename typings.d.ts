@@ -68,3 +68,30 @@ export interface IUserResponse {
     user: IUser;
   };
 }
+
+export interface ICategory {
+  id: string;
+  cat_name: string;
+  cat_img: string;
+  cat_description: string;
+  createdAt: Date;
+}
+export interface IPriceRange {
+  id: string;
+  range_name: string;
+  range_from: number;
+  range_to: number;
+  createdAt: Date;
+}
+
+export type StatusNames =
+  | "Open"
+  | "In-Progress"
+  | "Completed"
+  | "Re-Open"
+  | "Closed";
+export interface IProjectStatus {
+  id: string;
+  stat_name: StatusNames;
+  createdAt: Date;
+}

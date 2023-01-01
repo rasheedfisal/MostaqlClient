@@ -1,13 +1,19 @@
-import { FC } from "react";
+import { ChangeEventHandler, FC } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import ToggleButton from "./ToggleButton";
+import FormSwitch from "./FormSwitch";
 
 type IFormInputProps = {
   name: string;
-  defaultValue: boolean;
+  title: string;
+  isToggled: boolean;
+  onToggle: ChangeEventHandler<HTMLInputElement>;
 };
-
-const FormToggleInput: FC<IFormInputProps> = ({ name, defaultValue }) => {
+const FormToggleInput: FC<IFormInputProps> = ({
+  name,
+  title,
+  isToggled,
+  onToggle,
+}) => {
   const {
     control,
     formState: { errors },
@@ -17,8 +23,13 @@ const FormToggleInput: FC<IFormInputProps> = ({ name, defaultValue }) => {
       control={control}
       defaultValue=""
       name={name}
-      render={({ field }) => (
-        <ToggleButton {...field} isEnabled={defaultValue} />
+      render={({ field: { value, onChange } }) => (
+        <FormSwitch
+          title={title}
+          name={name}
+          isToggled={isToggled}
+          onToggle={onToggle}
+        />
       )}
     />
   );

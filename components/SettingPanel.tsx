@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { motion } from "framer-motion";
 import { useLocalStorage } from "../hooks/useStorage";
+import useUpdateEffect from "../hooks/useUpdateEffect";
 type SettingPanelProps = {
   isDark: boolean;
   setIsDark: Dispatch<SetStateAction<boolean>>;
@@ -55,6 +56,10 @@ function SettingPanel({
     setColor(color);
     //
   };
+
+  useUpdateEffect(() => {
+    setColors(color);
+  }, [color]);
   // const setTheme = (value: string) => {
   //   window.localStorage.setItem("dark", value);
   // };
@@ -220,32 +225,32 @@ function SettingPanel({
             </h6>
             <div>
               <button
-                onClick={() => setColors("cyan")}
+                onClick={() => setColor("cyan")}
                 className="w-10 h-10 rounded-full"
                 // style="background-color: var(--color-cyan)"
                 style={{ backgroundColor: "var(--color-cyan)" }}
               ></button>
               <button
                 // @click="setColors('teal')"
-                onClick={() => setColors("teal")}
+                onClick={() => setColor("teal")}
                 className="w-10 h-10 rounded-full"
                 style={{ backgroundColor: "var(--color-teal)" }}
               ></button>
               <button
                 // @click="setColors('green')"
-                onClick={() => setColors("green")}
+                onClick={() => setColor("green")}
                 className="w-10 h-10 rounded-full"
                 style={{ backgroundColor: "var(--color-green)" }}
               ></button>
               <button
                 // @click="setColors('fuchsia')"
-                onClick={() => setColors("fuchsia")}
+                onClick={() => setColor("fuchsia")}
                 className="w-10 h-10 rounded-full"
                 style={{ backgroundColor: "var(--color-fuchsia)" }}
               ></button>
               <button
                 // @click="setColors('blue')"
-                onClick={() => setColors("blue")}
+                onClick={() => setColor("blue")}
                 className="w-10 h-10 rounded-full"
                 style={{ backgroundColor: "var(--color-blue)" }}
               ></button>

@@ -106,6 +106,10 @@
     @apply ring ring-primary-lighter;
   }
 
+  .toggle input[type="checkbox"]:hover {
+    @apply bg-primary;
+  }
+
   input:invalid.invalid,
   textarea:invalid.invalid {
     @apply ring ring-danger-light dark:ring-danger;

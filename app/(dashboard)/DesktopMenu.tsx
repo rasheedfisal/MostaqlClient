@@ -1,3 +1,4 @@
+"use client";
 import { AnimatePresence, motion } from "framer-motion";
 import React, {
   KeyboardEventHandler,
@@ -7,6 +8,7 @@ import React, {
 
 import Image from "next/image";
 import avatar from "../../public/avatar.jpg";
+import { useLoaded } from "../../hooks/useLoaded";
 
 type DesktopProps = {
   toggleTheme: MouseEventHandler;
@@ -31,6 +33,7 @@ const DesktopMenu = ({
   userMenuRef,
   handleUserSpace,
 }: DesktopProps) => {
+  const loaded = useLoaded();
   return (
     <nav
       aria-label="Secondary"
@@ -45,15 +48,14 @@ const DesktopMenu = ({
         <div className="w-12 h-6 transition rounded-full outline-none bg-primary-100 dark:bg-primary-lighter"></div>
         <div
           className={`absolute top-0 left-0 inline-flex items-center justify-center w-6 h-6 transition-all duration-150 transform scale-110 rounded-full shadow-sm ${
-            // isDark && loaded
-            isDark
+            isDark && loaded
               ? "translate-x-6 text-primary-100 bg-primary-darker"
               : "translate-x-0 -translate-y-px  bg-white text-primary-dark"
           }`}
         >
           <svg
             // className={`w-4 h-4 ${isDark && loaded && "hidden"}`}
-            className={`w-4 h-4 ${isDark && "hidden"}`}
+            className={`w-4 h-4 ${isDark && loaded && "hidden"}`}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -68,7 +70,7 @@ const DesktopMenu = ({
           </svg>
           <svg
             // className={`w-4 h-4 ${!isDark && loaded && "hidden"}`}
-            className={`w-4 h-4 ${!isDark && "hidden"}`}
+            className={`w-4 h-4 ${!isDark && loaded && "hidden"}`}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

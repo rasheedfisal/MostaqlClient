@@ -37,8 +37,8 @@ const login = () => {
 
   // API Get Current Logged-in user
   const accessToken = stateContext.tokenState.token?.token;
+  console.log(accessToken);
   const query = useQuery(["authUser"], () => getMeFn(accessToken), {
-    // queryKey: ['accessToken', accessToken],
     enabled: false,
     select: (data) => data,
     retry: 1,
@@ -58,14 +58,8 @@ const login = () => {
         router.push("/home");
       },
       onError: (error: any) => {
-        if (Array.isArray((error as any).response.data.error)) {
-          (error as any).response.data.error.forEach((el: any) =>
-            toast.error(el.message, {
-              position: "top-right",
-            })
-          );
-        } else {
-          toast.error((error as any).response.data.message, {
+        if ((error as any).response?.data?.msg?.message) {
+          toast.error((error as any).response?.data?.msg?.message, {
             position: "top-right",
           });
         }
@@ -91,10 +85,6 @@ const login = () => {
     loginUser(values);
   };
 
-  // const handleSubmit = (e: FormEvent<HTMLButtonElement>) => {
-  //   e.preventDefault();
-  //   router.push("/home");
-  // };
   return (
     <div className="w-full max-w-sm px-4 py-6 space-y-6 bg-white rounded-md dark:bg-darker">
       <h1 className="text-xl font-semibold text-center">Client Area</h1>
@@ -107,20 +97,6 @@ const login = () => {
         >
           <FormInput2 name="email" label="Email Address" type="email" />
           <FormInput2 name="password" label="Password" type="password" />
-          {/* <input
-            className="w-full px-4 py-2 border rounded-md dark:bg-darker dark:border-gray-700 focus:outline-none focus:ring focus:ring-primary-100 dark:focus:ring-primary-darker"
-            type="email"
-            name="email"
-            placeholder="Email address"
-            required
-          />
-          <input
-            className="w-full px-4 py-2 border rounded-md dark:bg-darker dark:border-gray-700 focus:outline-none focus:ring focus:ring-primary-100 dark:focus:ring-primary-darker"
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-          /> */}
           <div className="flex items-center justify-between">
             {/* <!-- Remember me toggle --> */}
             <label className="flex items-center">

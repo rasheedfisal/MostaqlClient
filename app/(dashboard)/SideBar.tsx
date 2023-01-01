@@ -1,9 +1,5 @@
-import {
-  DocumentIcon,
-  HomeIcon,
-  PaperAirplaneIcon,
-  ShieldExclamationIcon,
-} from "@heroicons/react/24/solid";
+"use client";
+import { ShieldExclamationIcon } from "@heroicons/react/24/solid";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import React, { MouseEventHandler } from "react";
@@ -48,8 +44,8 @@ const SideBar = ({ openSettingsPanel }: SidebarProps) => {
               key={item.title}
               title={item.title}
               icon={item.icon}
-              open={true}
-              active={true}
+              open={item.open}
+              active={item.active}
             >
               {item.links.map((itemLink) => (
                 <Link
@@ -63,45 +59,6 @@ const SideBar = ({ openSettingsPanel }: SidebarProps) => {
               ))}
             </NavLink>
           ))}
-
-          {/* Authentication links */}
-          <NavLink
-            title="Authentication"
-            icon={<ShieldExclamationIcon className="w-5 h-5" />}
-            open={false}
-            active={false}
-          >
-            {/* <!-- active & hover classes 'text-gray-700 dark:text-light' -->
-                  <!-- inActive classes 'text-gray-400 dark:text-gray-400' --> */}
-            <Link
-              href="/register"
-              role="menuitem"
-              className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-            >
-              Register
-            </Link>
-            <a
-              href="/login"
-              role="menuitem"
-              className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-            >
-              Login
-            </a>
-            <a
-              href="#"
-              role="menuitem"
-              className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-            >
-              Forgot Password
-            </a>
-            <a
-              href="#"
-              role="menuitem"
-              className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-            >
-              Reset Password
-            </a>
-          </NavLink>
         </nav>
 
         {/* <!-- Sidebar footer --> */}

@@ -1,20 +1,26 @@
-import { LoginInput } from "../(auth)/login/page";
-import { RegisterInput } from "../(auth)/register/page";
 import {
   GenericResponse,
-  ILoginResponse,
   IPaginatedResponse,
   IPermission,
   IRole,
 } from "../../typings";
 import { privateAuthApi } from "./axios";
+import { ICreateUpdateRole } from "../(dashboard)/roles/add/page";
 
 interface RolePermissions {
   permissions: IPermission[];
 }
 
+export interface AddRolePermissions {
+  permissions: string[];
+}
+
+interface Response {
+  message: string;
+}
+
 type RolesList = Omit<IRole, "permissions">;
-type Role = Pick<IRole, "role_name" | "role_description">;
+// type Role = Pick<IRole, "role_name" | "role_description">;
 
 export const getAllRolesFn = async (accessToken: string | undefined) => {
   privateAuthApi.defaults.headers.common[
@@ -51,11 +57,28 @@ export const getAllPermissionFn = async (accessToken: string) => {
   return response.data;
 };
 
-export const createRoleFn = async (data: Role, accessToken: string) => {
+export const createRoleFn = async (
+  data: ICreateUpdateRole,
+  accessToken: string
+) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.post<RolesList>(`roles`, data);
+  return response.data;
+};
+export const addPermissionsToRoleFn = async (
+  data: AddRolePermissions,
+  roleId: string,
+  accessToken: string
+) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.post<Response>(
+    `roles/permissions/${roleId}`,
+    data
+  );
   return response.data;
 };
 
@@ -65,7 +88,7 @@ export const updateRoleFn = async ({
   accessToken,
 }: {
   id: string;
-  data: Role;
+  data: ICreateUpdateRole;
   accessToken: string;
 }) => {
   privateAuthApi.defaults.headers.common[

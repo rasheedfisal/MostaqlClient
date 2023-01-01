@@ -2,7 +2,6 @@
 
 import { ChevronDoubleLeftIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,17 +13,10 @@ import SubmitButton from "../../../../components/SubmitButton";
 import useAccessToken from "../../../../hooks/useAccessToken";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 
-import {
-  Controller,
-  FormProvider,
-  SubmitHandler,
-  useForm,
-} from "react-hook-form";
-import { useEffect } from "react";
+import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { getAllRolesFn } from "../../../api/rolesApi";
 import FileUpLoader from "../../../../components/FileUploader";
 import FormSelect, { ISelectData } from "../../../../components/FormSelect";
-import PageLoader from "../../../../components/PageLoader";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 const createUserSchema = object({
@@ -35,7 +27,6 @@ const createUserSchema = object({
   phone: string().min(1, "Phone is required"),
   password: string()
     .min(1, "Password is required")
-    // .min(8, "Password must be more than 8 characters")
     .max(32, "Password must be less than 32 characters"),
   role: z.object({
     label: z.string(),
@@ -56,20 +47,11 @@ const Add = () => {
     select: (data) => data,
     retry: 1,
     onError: (error) => {
-      toast.error("Server Error", {
-        position: "top-right",
-      });
-      // if (Array.isArray((error as any).data.error)) {
-      //   (error as any).data.error.forEach((el: any) =>
-      //     toast.error(el.message, {
-      //       position: "top-right",
-      //     })
-      //   );
-      // } else {
-      //   toast.error((error as any).data.message, {
-      //     position: "top-right",
-      //   });
-      // }
+      if ((error as any).response?.data?.msg?.message) {
+        toast.error((error as any).response?.data?.msg?.message, {
+          position: "top-right",
+        });
+      }
     },
   });
 
@@ -82,20 +64,11 @@ const Add = () => {
         toast.success("User created successfully");
       },
       onError: (error: any) => {
-        toast.error("Server Error", {
-          position: "top-right",
-        });
-        // if (Array.isArray(error.response.data.error)) {
-        //   error.data.error.forEach((el: any) =>
-        //     toast.error(el.message, {
-        //       position: "top-right",
-        //     })
-        //   );
-        // } else {
-        //   toast.error(error.response.data.message, {
-        //     position: "top-right",
-        //   });
-        // }
+        if ((error as any).response?.data?.msg?.message) {
+          toast.error((error as any).response?.data?.msg?.message, {
+            position: "top-right",
+          });
+        }
       },
     }
   );
@@ -104,10 +77,10 @@ const Add = () => {
     resolver: zodResolver(createUserSchema),
   });
   const {
-    formState: { errors, isSubmitSuccessful },
+    formState: { isSubmitSuccessful },
   } = methods;
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (isSubmitSuccessful) {
       methods.reset();
     }
@@ -123,25 +96,8 @@ const Add = () => {
     formData.append("fullname", values.fullname);
     formData.append("phone", values.phone);
     formData.append("profileImage", values.profileImage);
-    // console.log(formData);
     createUser(formData);
   };
-
-  // const data = [
-  //   { label: "admin", value: "1" },
-  //   { label: "basic", value: "1" },
-  //   { label: "super admin", value: "1" },
-  // ];
-
-  // const temp = roles?.map(({ id, role_name }) => ({
-  //   value: id,
-  //   label: role_name,
-  // }));
-
-  // useUpdateEffect(() => {
-  //   console.log("roles", roles);
-  //   console.log("token", token);
-  // }, []);
 
   return (
     <>

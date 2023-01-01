@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import NotificationPanel from "../../components/NotificationPanel";
 import SearchPanel from "../../components/SearchPanel";
 import { useLocalStorage } from "../../hooks/useStorage";
-// import { useLoaded } from "../../hooks/useLoaded";
+import { useLoaded } from "../../hooks/useLoaded";
 // import { BounceLoader } from "react-spinners";
 import { ToastContainer } from "react-toastify";
 import Persist from "./Persist";
@@ -22,23 +22,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const loaded = useLoaded();
+  const loaded = useLoaded();
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const notificationsPanelRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  // const [loading, setLoading] = useState(false);
-  // const [selectedColor, setSelectedColor] = useState("cyan");
-  // const [isDark, setIsDark] = useState<boolean>(
-  //   window.localStorage.getItem("dark") == null
-  //     ? false
-  //     : JSON.parse(window.localStorage.getItem("dark")!)
-  // );
 
   const [isDark, setIsDark] = useLocalStorage("dark", false);
-  // const [isActive, setIsActive] = useState(false);
-  // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
   const [isMobileMainMenuOpen, setIsMobileMainMenuOpen] = useState(false);
   useState(false);
@@ -138,12 +128,13 @@ export default function RootLayout({
 
   useUpdateEffect(() => {
     setColors(color);
-    setColor(color);
   }, []);
+  // useUpdateEffect(() => {
+  //   setIsDark(isDark);
+  // }, [isDark]);
 
   return (
-    // <div className={isDark && loaded ? "dark" : ""}>
-    <div className={isDark ? "dark" : ""}>
+    <div className={isDark && loaded ? "dark" : ""}>
       <div className="flex h-screen antialiased text-gray-900 bg-gray-100 dark:bg-dark dark:text-light">
         {/* <!-- Loading screen --> */}
 

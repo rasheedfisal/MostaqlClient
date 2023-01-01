@@ -1,9 +1,5 @@
-import {
-  DocumentIcon,
-  HomeIcon,
-  PaperAirplaneIcon,
-  ShieldExclamationIcon,
-} from "@heroicons/react/24/solid";
+"use client";
+import { ShieldExclamationIcon } from "@heroicons/react/24/solid";
 import Link from "next/link";
 import React from "react";
 import NavLink from "../../components/NavLink";
@@ -26,8 +22,8 @@ const MobileMainMenu = ({ isMobileMainMenuOpen }: MobileMainProps) => {
             key={item.title}
             title={item.title}
             icon={item.icon}
-            open={true}
-            active={true}
+            open={item.open}
+            active={item.active}
           >
             {item.links.map((itemLink) => (
               <Link
@@ -41,43 +37,6 @@ const MobileMainMenu = ({ isMobileMainMenuOpen }: MobileMainProps) => {
             ))}
           </NavLink>
         ))}
-
-        {/* Authentication links */}
-        <NavLink
-          title="Authentication"
-          icon={<ShieldExclamationIcon className="w-5 h-5" />}
-          open={false}
-          active={false}
-        >
-          <Link
-            href="/register"
-            role="menuitem"
-            className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-          >
-            Register
-          </Link>
-          <Link
-            href="/login"
-            role="menuitem"
-            className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-          >
-            Login
-          </Link>
-          <a
-            href="#"
-            role="menuitem"
-            className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-          >
-            Forgot Password
-          </a>
-          <a
-            href="#"
-            role="menuitem"
-            className="block p-2 text-sm text-gray-400 transition-colors duration-200 rounded-md dark:hover:text-light hover:text-gray-700"
-          >
-            Reset Password
-          </a>
-        </NavLink>
       </nav>
     </div>
   );

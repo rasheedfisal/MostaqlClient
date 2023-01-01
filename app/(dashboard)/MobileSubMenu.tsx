@@ -1,11 +1,6 @@
+"use client";
 import { Cycle, motion } from "framer-motion";
-import React, {
-  Dispatch,
-  KeyboardEventHandler,
-  MouseEventHandler,
-  RefObject,
-  SetStateAction,
-} from "react";
+import React, { KeyboardEventHandler, MouseEventHandler } from "react";
 import Image from "next/image";
 import avatar from "../../public/avatar.jpg";
 type MobileSubProps = {
