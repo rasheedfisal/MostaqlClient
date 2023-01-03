@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ILoginResponse } from "../../typings";
 
-const BASE_URL = "http://localhost:3000/api/v1/";
+const BASE_URL = "https://calm-cyan-bullfrog-tie.cyclic.app/";
 
 export const authApi = axios.create({
   baseURL: BASE_URL,
