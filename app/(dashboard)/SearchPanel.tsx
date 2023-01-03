@@ -1,17 +1,49 @@
-import React, { MouseEventHandler, RefObject, useState } from "react";
+"use client";
+import React, { MouseEventHandler, RefObject } from "react";
 import { motion } from "framer-motion";
+import useAccessToken from "../../hooks/useAccessToken";
+import { useQuery } from "@tanstack/react-query";
+import { getAllChatUsersFn } from "../api/chatApi";
+import { toast } from "react-toastify";
+import { ISysUser } from "../../typings";
+import { useStateContext } from "../../context/AppConext";
 type SearchPanelProps = {
   SearchPanelRef: RefObject<HTMLInputElement>;
   handleClick: MouseEventHandler;
 };
 
 function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
+  const token = useAccessToken();
+  const stateContext = useStateContext();
+
+  const { isLoading, data: chatusers } = useQuery(
+    ["chatusers"],
+    () => getAllChatUsersFn(token),
+    {
+      select: (data) => data,
+      retry: 1,
+      onError: (error) => {
+        if ((error as any).response?.data?.msg?.message) {
+          toast.error((error as any).response?.data?.msg?.message, {
+            position: "top-right",
+          });
+        }
+      },
+    }
+  );
+
   const handleSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "32") {
-      // setIsSettingsPanelOpen((prev) => !prev);
       handleClick;
     }
   };
+  const setCurrentChatUser = (user: ISysUser): void => {
+    stateContext.chatDispatch({ type: "SET_Current_Chat", payload: user });
+  };
+
+  if (isLoading) {
+    return <p>Loading</p>;
+  }
 
   return (
     <motion.div
@@ -90,94 +122,35 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
         {/* <!-- Panel content (Search result) --> */}
         <div className="flex-1 px-4 pb-4 space-y-4 overflow-y-hidden h hover:overflow-y-auto">
           <h3 className="py-2 text-sm font-semibold text-gray-600 dark:text-light">
-            History
+            Users
           </h3>
-          <a href="#" className="flex space-x-4">
-            <div className="flex-shrink-0">
-              <img
-                className="w-10 h-10 rounded-lg"
-                src="car-tech.jpg"
-                alt="Post cover"
-              />
-            </div>
-            <div className="flex-1 max-w-xs overflow-hidden">
-              <h4 className="text-sm font-semibold text-gray-600 dark:text-light">
-                Header
-              </h4>
-              <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                Lorem ipsum dolor, sit amet consectetur.
-              </p>
-              <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                {" "}
-                Post{" "}
-              </span>
-            </div>
-          </a>
-          <a href="#" className="flex space-x-4">
-            <div className="flex-shrink-0">
-              <img
-                className="w-10 h-10 rounded-lg"
-                src="product1.jpg"
-                alt="Ahmed Kamel"
-              />
-            </div>
-            <div className="flex-1 max-w-xs overflow-hidden">
-              <h4 className="text-sm font-semibold text-gray-600 dark:text-light">
-                Ahmed Kamel
-              </h4>
-              <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                Last activity 3h ago.
-              </p>
-              <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                {" "}
-                Offline{" "}
-              </span>
-            </div>
-          </a>
-          <a href="#" className="flex space-x-4">
-            <div className="flex-shrink-0">
-              <img
-                className="w-10 h-10 rounded-lg"
-                src="product2.jpg"
-                alt="K-WD Dashboard"
-              />
-            </div>
-            <div className="flex-1 max-w-xs overflow-hidden">
-              <h4 className="text-sm font-semibold text-gray-600 dark:text-light">
-                K-WD Dashboard
-              </h4>
-              <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-              </p>
-              <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                {" "}
-                Updated 3h ago.{" "}
-              </span>
-            </div>
-          </a>
-          <template x-for="i in 10" x-key="i">
-            <a href="#" className="flex space-x-4">
+          {chatusers?.results.map((chatuser) => (
+            <span
+              key={chatuser.id}
+              onClick={() => setCurrentChatUser(chatuser)}
+              className="flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
+            >
               <div className="flex-shrink-0">
                 <img
                   className="w-10 h-10 rounded-lg"
-                  src="product3.jpg"
-                  alt="K-WD Dashboard"
+                  src={chatuser.imgPath ?? "/noImg.jpg"}
+                  alt="avatar"
+                  loading="lazy"
                 />
               </div>
               <div className="flex-1 max-w-xs overflow-hidden">
-                <h4 className="text-sm font-semibold text-gray-600 dark:text-light">
-                  K-WD Dashboard
+                <h4 className="text-sm font-semibold  dark:text-light">
+                  {chatuser.fullname}
                 </h4>
-                <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                </p>
-                <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                  {" "}
-                  Updated 3h ago.{" "}
+                {/* <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
+                  Lorem ipsum dolor, sit amet consectetur.
+                </p> */}
+                <span className="text-sm font-normal  dark:text-primary-light">
+                  {chatuser.Role?.role_name}
                 </span>
               </div>
-            </a>
-          </template>
+            </span>
+          ))}
         </div>
       </div>
     </motion.div>

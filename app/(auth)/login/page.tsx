@@ -37,11 +37,11 @@ const login = () => {
 
   // API Get Current Logged-in user
   const accessToken = stateContext.tokenState.token?.token;
-  console.log(accessToken);
-  const query = useQuery(["authUser"], () => getMeFn(accessToken), {
+  const query = useQuery(["authUser", 1200], () => getMeFn(accessToken), {
     enabled: false,
     select: (data) => data,
     retry: 1,
+    // staleTime: Infinity,
     onSuccess: (data) => {
       stateContext.dispatch({ type: "SET_USER", payload: data });
     },

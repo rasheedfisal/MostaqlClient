@@ -6,7 +6,7 @@ import SettingPanel from "../../components/SettingPanel";
 import { motion, AnimatePresence, useCycle } from "framer-motion";
 import { usePathname } from "next/navigation";
 import NotificationPanel from "../../components/NotificationPanel";
-import SearchPanel from "../../components/SearchPanel";
+import SearchPanel from "./SearchPanel";
 import { useLocalStorage } from "../../hooks/useStorage";
 import { useLoaded } from "../../hooks/useLoaded";
 // import { BounceLoader } from "react-spinners";
@@ -16,12 +16,14 @@ import NavBar from "./NavBar";
 import SideBar from "./SideBar";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
 import { setColors } from "../ThemeSettings";
+import useAccessToken from "../../hooks/useAccessToken";
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const token = useAccessToken();
   const loaded = useLoaded();
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const notificationsPanelRef = useRef<HTMLDivElement>(null);

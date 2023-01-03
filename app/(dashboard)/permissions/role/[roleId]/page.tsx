@@ -54,20 +54,11 @@ const page = ({ params: { roleId } }: PageProps) => {
           toast.success("Role Permissions Updated successfully");
         },
         onError: (error: any) => {
-          toast.error("Server Error", {
-            position: "top-right",
-          });
-          // if (Array.isArray(error.response.data.error)) {
-          //   error.data.error.forEach((el: any) =>
-          //     toast.error(el.message, {
-          //       position: "top-right",
-          //     })
-          //   );
-          // } else {
-          //   toast.error(error.response.data.message, {
-          //     position: "top-right",
-          //   });
-          // }
+          if ((error as any).response?.data?.msg?.message) {
+            toast.error((error as any).response?.data?.msg?.message, {
+              position: "top-right",
+            });
+          }
         },
       }
     );

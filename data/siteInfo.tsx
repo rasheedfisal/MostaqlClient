@@ -1,4 +1,9 @@
-import { HomeIcon, ShieldExclamationIcon } from "@heroicons/react/24/solid";
+import {
+  HomeIcon,
+  ShieldExclamationIcon,
+  CubeTransparentIcon,
+  HandRaisedIcon,
+} from "@heroicons/react/24/solid";
 
 interface ILinks {
   title: string;
@@ -26,11 +31,23 @@ export const links: ILinks[] = [
   },
   {
     title: "Projects",
-    icon: <HomeIcon className="w-5 h-5" />,
+    icon: <CubeTransparentIcon className="w-5 h-5" />,
     links: [
       {
         name: "Manage",
         path: "/projects",
+      },
+    ],
+    open: false,
+    active: false,
+  },
+  {
+    title: "Support",
+    icon: <HandRaisedIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Chat Engin",
+        path: "/chat",
       },
     ],
     open: false,

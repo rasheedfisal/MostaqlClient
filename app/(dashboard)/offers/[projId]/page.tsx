@@ -74,7 +74,7 @@ const page = ({ params: { projId } }: PageProps) => {
                       <div className="block md:flex items-center">
                         <img
                           className="mx-4 w-10 h-10 object-cover rounded-full"
-                          src={offer.client.imgPath}
+                          src={offer.client.imgPath ?? "noImg.jpg"}
                           alt="avatar"
                           loading="lazy"
                         />

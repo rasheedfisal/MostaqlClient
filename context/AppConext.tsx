@@ -1,9 +1,12 @@
 "use client";
 import { createContext, useContext, useReducer } from "react";
-import { ILoginResponse, IToken, IUser } from "../typings";
+import { ILoginResponse, ISysUser, IToken, IUser } from "../typings";
 
 type State = {
   authUser: IUser | null;
+};
+type ChatState = {
+  currentChat: ISysUser | null;
 };
 type TokenState = {
   token: ILoginResponse | null;
@@ -12,6 +15,10 @@ type Action = {
   type: string;
   payload: IUser | null;
 };
+type ChatAction = {
+  type: string;
+  payload: ISysUser | null;
+};
 
 type TokenAction = {
   type: string;
@@ -19,10 +26,14 @@ type TokenAction = {
 };
 
 type Dispatch = (action: Action) => void;
+type ChatDispatch = (action: ChatAction) => void;
 type DispatchToken = (action: TokenAction) => void;
 
 const initialState: State = {
   authUser: null,
+};
+const initialChatState: ChatState = {
+  currentChat: null,
 };
 
 const initialTokenState: TokenState = {
@@ -37,6 +48,8 @@ const StateContext = createContext<
       dispatch: Dispatch;
       tokenState: TokenState;
       tokenDispatch: DispatchToken;
+      chatState: ChatState;
+      chatDispatch: ChatDispatch;
     }
   | undefined
 >(undefined);
@@ -67,6 +80,19 @@ const stateTokenReducer = (state: TokenState, action: TokenAction) => {
     }
   }
 };
+const CurrenChatReducer = (state: ChatState, action: ChatAction) => {
+  switch (action.type) {
+    case "SET_Current_Chat": {
+      return {
+        ...state,
+        currentChat: action.payload,
+      };
+    }
+    default: {
+      throw new Error(`Unhandled action type`);
+    }
+  }
+};
 
 const StateContextProvider = ({ children }: StateContextProviderProps) => {
   const [state, dispatch] = useReducer(stateReducer, initialState);
@@ -74,7 +100,18 @@ const StateContextProvider = ({ children }: StateContextProviderProps) => {
     stateTokenReducer,
     initialTokenState
   );
-  const value = { state, dispatch, tokenState, tokenDispatch };
+  const [chatState, chatDispatch] = useReducer(
+    CurrenChatReducer,
+    initialChatState
+  );
+  const value = {
+    state,
+    dispatch,
+    tokenState,
+    tokenDispatch,
+    chatState,
+    chatDispatch,
+  };
   return (
     <StateContext.Provider value={value}>{children}</StateContext.Provider>
   );

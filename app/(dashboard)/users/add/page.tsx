@@ -32,7 +32,7 @@ const createUserSchema = object({
     label: z.string(),
     value: z.string(),
   }),
-  profileImage: z.instanceof(File),
+  profileImage: z.instanceof(File).optional(),
 });
 
 export type ICreateUser = TypeOf<typeof createUserSchema>;
@@ -95,7 +95,9 @@ const Add = () => {
     formData.append("password", values.password);
     formData.append("fullname", values.fullname);
     formData.append("phone", values.phone);
-    formData.append("profileImage", values.profileImage);
+    if (values.profileImage !== undefined) {
+      formData.append("profileImage", values.profileImage);
+    }
     createUser(formData);
   };
 
