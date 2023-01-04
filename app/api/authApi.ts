@@ -14,7 +14,10 @@ export const signUpUserFn = async (user: RegisterInput) => {
 };
 
 export const loginUserFn = async (user: LoginInput) => {
-  const response = await authApi.post<ILoginResponse>("auth/signin", user);
+  const response = await authApi.post<ILoginResponse>(
+    "auth/dashboard_signin",
+    user
+  );
   return response.data;
 };
 
@@ -26,7 +29,7 @@ export const verifyEmailFn = async (verificationCode: string) => {
 };
 
 export const logoutUserFn = async () => {
-  const response = await privateAuthApi.get<GenericResponse>("auth/signout");
+  const response = await privateAuthApi.post<GenericResponse>("auth/signout");
   return response.data;
 };
 

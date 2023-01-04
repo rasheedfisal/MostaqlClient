@@ -36,8 +36,8 @@ const page = ({ params: { roleId } }: PageProps) => {
       staleTime: 0,
       cacheTime: 0,
       onError: (error) => {
-        if ((error as any).response?.data?.msg?.message) {
-          toast.error((error as any).response?.data?.msg?.message, {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
             position: "top-right",
           });
         }
@@ -54,8 +54,8 @@ const page = ({ params: { roleId } }: PageProps) => {
           toast.success("Role Permissions Updated successfully");
         },
         onError: (error: any) => {
-          if ((error as any).response?.data?.msg?.message) {
-            toast.error((error as any).response?.data?.msg?.message, {
+          if ((error as any).response?.data?.msg) {
+            toast.error((error as any).response?.data?.msg, {
               position: "top-right",
             });
           }

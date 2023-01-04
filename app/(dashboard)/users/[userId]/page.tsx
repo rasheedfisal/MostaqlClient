@@ -1,43 +1,48 @@
 "use client";
-
-import { ChevronDoubleLeftIcon } from "@heroicons/react/24/solid";
-import Link from "next/link";
-
+import React from "react";
+import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createUserFn } from "../../../api/usersApi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { toast } from "react-toastify";
-import FormInput from "../../../../components/FormInput";
-import SubmitButton from "../../../../components/SubmitButton";
-import useAccessToken from "../../../../hooks/useAccessToken";
-import { DocumentPlusIcon } from "@heroicons/react/24/solid";
-
-import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import { getAllRolesFn } from "../../../api/rolesApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import FileUpLoader from "../../../../components/FileUploader";
-import FormSelect, { ISelectData } from "../../../../components/FormSelect";
-import useUpdateEffect from "../../../../hooks/useUpdateEffect";
+import useAccessToken from "../../../../hooks/useAccessToken";
+import SubmitButton from "../../../../components/SubmitButton";
+import {
+  ChevronDoubleLeftIcon,
+  DocumentPlusIcon,
+} from "@heroicons/react/24/solid";
+import FormInput from "../../../../components/FormInput";
+import Link from "next/link";
+import { getUserFn, updateUserFn } from "../../../api/usersApi";
+import { getAllRolesFn } from "../../../api/rolesApi";
+import FormSelect from "../../../../components/FormSelect";
 
-const createUserSchema = object({
+type PageProps = {
+  params: {
+    userId: string;
+  };
+};
+
+const updateUserSchema = object({
   fullname: string().min(1, "Name is required"),
   email: string()
     .min(1, "Email address is required")
     .email("Email Address is invalid"),
   phone: string().min(1, "Phone is required"),
-  password: string()
-    .min(1, "Password is required")
-    .max(32, "Password must be less than 32 characters"),
   role: z.object({
     label: z.string(),
     value: z.string(),
   }),
   profileImage: z.instanceof(File).optional(),
-});
+}).partial();
 
-export type ICreateUser = TypeOf<typeof createUserSchema>;
-const Add = () => {
+type IUpdateUser = TypeOf<typeof updateUserSchema>;
+
+const page = ({ params: { userId } }: PageProps) => {
   const token = useAccessToken();
+  const queryClient = useQueryClient();
 
   const {
     isLoading: isRolesLoading,
@@ -55,13 +60,49 @@ const Add = () => {
     },
   });
 
-  const queryClient = useQueryClient();
-  const { isLoading, mutate: createUser } = useMutation(
-    (user: FormData) => createUserFn(user, token),
+  const { isLoading: isUserLoading, data: getUser } = useQuery(
+    ["getUser", userId],
+    () => getUserFn(userId, token),
+    {
+      select: (data) => data,
+      retry: 1,
+      onSuccess: (data) => {
+        if (data) {
+          methods.reset({
+            fullname: data.fullname,
+            email: data.email,
+            phone: data.phone,
+            role: {
+              label: data.Role?.role_name,
+              value: data.Role?.id,
+            },
+          });
+        }
+      },
+      onError: (error) => {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
+            position: "top-right",
+          });
+        }
+      },
+    }
+  );
+
+  const { isLoading, mutate: updateUser } = useMutation(
+    ({
+      id,
+      formData,
+      accessToken,
+    }: {
+      id: string;
+      formData: FormData;
+      accessToken: string;
+    }) => updateUserFn({ id, formData, accessToken }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["users"]);
-        toast.success("User created successfully");
+        toast.success("User updated successfully");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -73,39 +114,50 @@ const Add = () => {
     }
   );
 
-  const methods = useForm<ICreateUser>({
-    resolver: zodResolver(createUserSchema),
+  const methods = useForm<IUpdateUser>({
+    resolver: zodResolver(updateUserSchema),
   });
+
   const {
-    formState: { isSubmitSuccessful },
+    formState: { isSubmitting },
   } = methods;
 
-  useUpdateEffect(() => {
-    if (isSubmitSuccessful) {
+  useEffect(() => {
+    if (isSubmitting) {
       methods.reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSubmitSuccessful]);
+  }, [isSubmitting]);
 
-  const onSubmitHandler: SubmitHandler<ICreateUser> = (values) => {
+  if (isUserLoading) {
+    return <p>Loading...</p>;
+  }
+
+  const onSubmitHandler: SubmitHandler<IUpdateUser> = (values) => {
     const formData = new FormData();
-
-    formData.append("role_id", values.role.value);
-    formData.append("email", values.email);
-    formData.append("password", values.password);
-    formData.append("fullname", values.fullname);
-    formData.append("phone", values.phone);
+    if (values.role?.value !== undefined) {
+      formData.append("role_id", values.role?.value);
+    }
+    if (values.email !== undefined) {
+      formData.append("email", values.email);
+    }
+    if (values.fullname !== undefined) {
+      formData.append("fullname", values.fullname);
+    }
+    if (values.phone !== undefined) {
+      formData.append("phone", values.phone);
+    }
     if (values.profileImage !== undefined) {
       formData.append("profileImage", values.profileImage);
     }
-    createUser(formData);
+    updateUser({ id: userId, formData, accessToken: token });
   };
 
   return (
     <>
       {/* <!-- Content header --> */}
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
-        <h1 className="text-2xl font-semibold">Add User</h1>
+        <h1 className="text-2xl font-semibold">Update User</h1>
         <Link
           href="/users"
           className="px-4 py-2 flex items-center text-sm text-white rounded-md bg-primary hover:bg-primary-dark focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark"
@@ -131,8 +183,6 @@ const Add = () => {
                 <FormInput label="Phone" type="text" name="phone" />
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <FormInput label="Password" type="password" name="password" />
-
                 <FormSelect
                   label="Role"
                   name="role"
@@ -154,6 +204,7 @@ const Add = () => {
                   name="profileImage"
                   multiple={false}
                   label="select avatar"
+                  defaultUrl={getUser?.imgPath}
                 />
               </div>
               <div className="flex">
@@ -172,4 +223,4 @@ const Add = () => {
   );
 };
 
-export default Add;
+export default page;

@@ -10,12 +10,16 @@ import {
 } from "../../typings";
 import { privateAuthApi } from "./axios";
 
-export const getAllUsersFn = async (accessToken: string | undefined) => {
+export const getAllUsersFn = async (
+  accessToken: string | undefined,
+  pageNo: number,
+  recordSize: number
+) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.get<IPaginatedResponse<ISysUser>>(
-    "users?page=1&size=10"
+    `users?page=${pageNo}&size=${recordSize}`
   );
   return response.data;
 };
@@ -60,10 +64,32 @@ export const updateUserFn = async ({
   return response.data;
 };
 
-export const deleteUserFn = async (id: string, accessToken: string) => {
+export const deleteUserFn = async ({
+  id,
+  accessToken,
+}: {
+  id: string;
+  accessToken: string;
+}) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.delete<GenericResponse>(`users/${id}`);
+  return response.data;
+};
+
+export const lockUnlockUserFn = async ({
+  id,
+  accessToken,
+}: {
+  id: string;
+  accessToken: string;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<GenericResponse>(
+    `users/lockunlock/${id}`
+  );
   return response.data;
 };

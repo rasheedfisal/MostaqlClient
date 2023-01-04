@@ -18,50 +18,25 @@ import { getAllRolesFn } from "../../../api/rolesApi";
 import FileUpLoader from "../../../../components/FileUploader";
 import FormSelect, { ISelectData } from "../../../../components/FormSelect";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
+import { createCategoryFn } from "../../../api/categoryApi";
 
-const createUserSchema = object({
-  fullname: string().min(1, "Name is required"),
-  email: string()
-    .min(1, "Email address is required")
-    .email("Email Address is invalid"),
-  phone: string().min(1, "Phone is required"),
-  password: string()
-    .min(1, "Password is required")
-    .max(32, "Password must be less than 32 characters"),
-  role: z.object({
-    label: z.string(),
-    value: z.string(),
-  }),
-  profileImage: z.instanceof(File).optional(),
+const createUpdateCategorySchema = object({
+  cat_name: string().min(1, "Name is required"),
+  cat_description: string().min(1, "Description is required"),
+  CategoryImg: z.instanceof(File).optional(),
 });
 
-export type ICreateUser = TypeOf<typeof createUserSchema>;
-const Add = () => {
+export type ICreateUpdateCategory = TypeOf<typeof createUpdateCategorySchema>;
+const page = () => {
   const token = useAccessToken();
 
-  const {
-    isLoading: isRolesLoading,
-    isSuccess,
-    data: roles,
-  } = useQuery(["roles"], () => getAllRolesFn(token), {
-    select: (data) => data,
-    retry: 1,
-    onError: (error) => {
-      if ((error as any).response?.data?.msg) {
-        toast.error((error as any).response?.data?.msg, {
-          position: "top-right",
-        });
-      }
-    },
-  });
-
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createUser } = useMutation(
-    (user: FormData) => createUserFn(user, token),
+  const { isLoading, mutate: createCategory } = useMutation(
+    (category: FormData) => createCategoryFn(category, token),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["users"]);
-        toast.success("User created successfully");
+        queryClient.invalidateQueries(["categories"]);
+        toast.success("Category created successfully");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -73,8 +48,8 @@ const Add = () => {
     }
   );
 
-  const methods = useForm<ICreateUser>({
-    resolver: zodResolver(createUserSchema),
+  const methods = useForm<ICreateUpdateCategory>({
+    resolver: zodResolver(createUpdateCategorySchema),
   });
   const {
     formState: { isSubmitSuccessful },
@@ -87,27 +62,24 @@ const Add = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  const onSubmitHandler: SubmitHandler<ICreateUser> = (values) => {
+  const onSubmitHandler: SubmitHandler<ICreateUpdateCategory> = (values) => {
     const formData = new FormData();
 
-    formData.append("role_id", values.role.value);
-    formData.append("email", values.email);
-    formData.append("password", values.password);
-    formData.append("fullname", values.fullname);
-    formData.append("phone", values.phone);
-    if (values.profileImage !== undefined) {
-      formData.append("profileImage", values.profileImage);
+    formData.append("cat_name", values.cat_name);
+    formData.append("cat_description", values.cat_description);
+    if (values.CategoryImg !== undefined) {
+      formData.append("CategoryImg", values.CategoryImg);
     }
-    createUser(formData);
+    createCategory(formData);
   };
 
   return (
     <>
       {/* <!-- Content header --> */}
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
-        <h1 className="text-2xl font-semibold">Add User</h1>
+        <h1 className="text-2xl font-semibold">Add Category</h1>
         <Link
-          href="/users"
+          href="/categories"
           className="px-4 py-2 flex items-center text-sm text-white rounded-md bg-primary hover:bg-primary-dark focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark"
         >
           <ChevronDoubleLeftIcon className="w-5 h-5" />
@@ -123,37 +95,19 @@ const Add = () => {
               autoComplete="off"
               onSubmit={methods.handleSubmit(onSubmitHandler)}
             >
-              <div className="grid grid-cols-1">
-                <FormInput label="Name" type="text" name="fullname" />
-              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <FormInput label="Email" type="email" name="email" />
-                <FormInput label="Phone" type="text" name="phone" />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <FormInput label="Password" type="password" name="password" />
-
-                <FormSelect
-                  label="Role"
-                  name="role"
-                  isLoading={isRolesLoading}
-                  data={
-                    isSuccess
-                      ? roles.results.map(({ id, role_name }) => ({
-                          value: id,
-                          label: role_name,
-                        }))
-                      : []
-                  }
-                  isMulti={false}
-                  isRtl={false}
+                <FormInput label="Name" type="text" name="cat_name" />
+                <FormInput
+                  label="Description"
+                  type="text"
+                  name="cat_description"
                 />
               </div>
               <div className="flex flex-col items-center">
                 <FileUpLoader
-                  name="profileImage"
+                  name="CategoryImg"
                   multiple={false}
-                  label="select avatar"
+                  label="select image"
                 />
               </div>
               <div className="flex">
@@ -172,4 +126,4 @@ const Add = () => {
   );
 };
 
-export default Add;
+export default page;

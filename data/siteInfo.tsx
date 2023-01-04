@@ -3,6 +3,7 @@ import {
   ShieldExclamationIcon,
   CubeTransparentIcon,
   HandRaisedIcon,
+  AdjustmentsVerticalIcon,
 } from "@heroicons/react/24/solid";
 
 interface ILinks {
@@ -48,6 +49,22 @@ export const links: ILinks[] = [
       {
         name: "Chat Engin",
         path: "/chat",
+      },
+    ],
+    open: false,
+    active: false,
+  },
+  {
+    title: "Settings",
+    icon: <AdjustmentsVerticalIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Categories",
+        path: "/categories",
+      },
+      {
+        name: "Price Ranges",
+        path: "/prices",
       },
     ],
     open: false,

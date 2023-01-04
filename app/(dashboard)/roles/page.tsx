@@ -17,8 +17,8 @@ const page = () => {
       retry: 1,
       onError: (error) => {
         // console.log(error);
-        if ((error as any).response?.data?.msg?.message) {
-          toast.error((error as any).response?.data?.msg?.message, {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
             position: "top-right",
           });
         }

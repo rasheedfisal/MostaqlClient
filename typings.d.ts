@@ -75,6 +75,7 @@ export interface ICategory {
   cat_img: string;
   cat_description: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 export interface IPriceRange {
   id: string;

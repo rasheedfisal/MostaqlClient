@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect } from "react";
+import { useEffect } from "react";
 
 import { object, string, TypeOf } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import FormInput2 from "../../../components/FormInput2";
 import SubmitButton from "../../../components/SubmitButton";
+import Cookies from "js-cookie";
 
 const loginSchema = object({
   email: string()
@@ -55,11 +56,13 @@ const login = () => {
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
         query.refetch();
         toast.success("You successfully logged in");
+        Cookies.set("loggedin", "true");
+        // Cookies.set("accessToken", data.token);
         router.push("/home");
       },
       onError: (error: any) => {
-        if ((error as any).response?.data?.msg?.message) {
-          toast.error((error as any).response?.data?.msg?.message, {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
             position: "top-right",
           });
         }

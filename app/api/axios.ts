@@ -1,7 +1,9 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 import { ILoginResponse } from "../../typings";
 
-const BASE_URL = "https://calm-cyan-bullfrog-tie.cyclic.app/api/v1/";
+const BASE_URL = "http://localhost:3000/api/v1/";
+// const BASE_URL = "https://calm-cyan-bullfrog-tie.cyclic.app/api/v1/";
 
 export const authApi = axios.create({
   baseURL: BASE_URL,
@@ -25,16 +27,11 @@ export const refreshAccessTokenFn = async () => {
 // privateAuthApi.interceptors.request.use(
 //   (config) => {
 //     if (config.headers?.Authorization === undefined) {
-//       // const stateContext = useStateContext();
-//       // const accessToken = stateContext.tokenState.token?.access_token;
+//       const accessToken = Cookies.get("accessToken");
 
-//       if (typeof window !== "undefined") {
-//         const accessToken = window.localStorage.getItem("token");
-
-//         if (accessToken) {
-//           const jwt = `Bearer ${JSON.parse(accessToken)}`;
-//           config.headers!.Authorization = jwt;
-//         }
+//       if (accessToken) {
+//         const jwt = `Bearer ${JSON.parse(accessToken)}`;
+//         config.headers!.Authorization = jwt;
 //       }
 //     }
 //     return config;
