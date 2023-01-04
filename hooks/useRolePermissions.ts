@@ -12,11 +12,14 @@ const useRolePermissions = async (
   token: string
 ): Promise<IRolePermissions[]> => {
   try {
-    const allPermissionPromise = getAllPermissionFn(token);
-    const rolePermissionPromise = getRolePermissionFn(roleId, token);
+    // const allPermissionPromise = getAllPermissionFn(token);
+    // const rolePermissionPromise = getRolePermissionFn(roleId, token);
 
-    const allPermission = await allPermissionPromise;
-    const rolePermission = await rolePermissionPromise;
+    // const allPermission = await allPermissionPromise;
+    // const rolePermission = await rolePermissionPromise;
+
+    const allPermission = await getAllPermissionFn(token);
+    const rolePermission = await getRolePermissionFn(roleId, token);
 
     // if (!Array.isArray(allPermission) || !Array.isArray(rolePermission)) {
     //   console.log("not an array");
@@ -61,7 +64,7 @@ const useRolePermissions = async (
     }
     return newArray;
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return [];
   }
 };
