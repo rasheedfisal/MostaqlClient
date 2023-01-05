@@ -3,17 +3,22 @@ import {
   ChevronDoubleLeftIcon,
   DocumentPlusIcon,
 } from "@heroicons/react/24/solid";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import useRolePermissions from "../../../../../hooks/useRolePermissions";
+// import useRolePermissions from "../../../../../hooks/useRolePermissions";
 import useAccessToken from "../../../../../hooks/useAccessToken";
 import { useForm } from "react-hook-form";
 import SubmitButton from "../../../../../components/SubmitButton";
 import {
   addPermissionsToRoleFn,
   AddRolePermissions,
+  getAllPermissionFn,
+  getRolePermissionFn,
 } from "../../../../api/rolesApi";
+import { useQueries } from "@tanstack/react-query";
+// import { IPermission } from "../../../../../typings";
+import { useState } from "react";
 type PageProps = {
   params: {
     roleId: string;
@@ -25,25 +30,114 @@ interface rolePerm {
   [key: string]: boolean;
 }
 
+interface IRolePermissions {
+  permissionId: string;
+  permissionName: string;
+  permissionDescription: string;
+  isEnabled: boolean;
+}
+
 const page = ({ params: { roleId } }: PageProps) => {
   const token = useAccessToken();
-  const { isLoading, data: rolePerm } = useQuery(
-    ["rolePermissions"],
-    () => useRolePermissions(roleId, token),
-    {
-      select: (data) => data,
-      retry: 1,
-      staleTime: 0,
-      cacheTime: 0,
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+  const [newArray, setNewArray] = useState<IRolePermissions[]>([]);
+
+  const [allPermission, rolePermission] = useQueries({
+    queries: [
+      {
+        queryKey: ["allPermissions"],
+        queryFn: () => getAllPermissionFn(token),
       },
+
+      {
+        queryKey: ["userRolePermissions"],
+        queryFn: () => getRolePermissionFn(roleId, token),
+      },
+    ],
+  });
+
+  if (allPermission.isLoading || rolePermission.isLoading)
+    return "Loading Permissions...";
+
+  if (allPermission.error) {
+    toast.error((allPermission.error as any).response?.data?.msg, {
+      position: "top-right",
+    });
+    return;
+  }
+
+  if (rolePermission.error) {
+    toast.error((rolePermission.error as any).response?.data?.msg, {
+      position: "top-right",
+    });
+    return;
+  }
+
+  if (!allPermission.isSuccess || !rolePermission.isSuccess) {
+    toast.error("Server Error", {
+      position: "top-right",
+    });
+    return;
+  }
+  const arrPermissions = [...allPermission.data!]
+    .concat()
+    .sort((a, b) => (a.perm_name < b.perm_name ? -1 : 1));
+  const arrRolePermission = [...rolePermission.data!.permissions]
+    .concat()
+    .sort((a, b) => (a.perm_name < b.perm_name ? -1 : 1));
+
+  // const newArray: IRolePermissions[] = [];
+  for (let i = 0; i < arrPermissions.length; i++) {
+    if (arrRolePermission[i]) {
+      if (arrPermissions[i].perm_name === arrRolePermission[i].perm_name) {
+        setNewArray((prev) => [
+          ...prev,
+          {
+            permissionId: arrPermissions[i].id,
+            permissionName: arrPermissions[i].perm_name,
+            permissionDescription: arrPermissions[i].perm_description,
+            isEnabled: true,
+          },
+        ]);
+      } else {
+        setNewArray((prev) => [
+          ...prev,
+          {
+            permissionId: arrPermissions[i].id,
+            permissionName: arrPermissions[i].perm_name,
+            permissionDescription: arrPermissions[i].perm_description,
+            isEnabled: false,
+          },
+        ]);
+      }
+    } else {
+      setNewArray((prev) => [
+        ...prev,
+        {
+          permissionId: arrPermissions[i].id,
+          permissionName: arrPermissions[i].perm_name,
+          permissionDescription: arrPermissions[i].perm_description,
+          isEnabled: false,
+        },
+      ]);
     }
-  );
+  }
+  // const { isLoading, data: rolePerm } = useQuery(
+  //   ["rolePermissions"],
+  //   () => useRolePermissions(roleId, token),
+  //   {
+  //     select: (data) => data,
+  //     retry: 1,
+  //     staleTime: 0,
+  //     cacheTime: 0,
+  //     onError: (error) => {
+  //       if ((error as any).response?.data?.msg) {
+  //         toast.error((error as any).response?.data?.msg, {
+  //           position: "top-right",
+  //         });
+  //       }
+  //     },
+  //   }
+  // );
 
   const { isLoading: isPermessionLoading, mutate: createRolePermission } =
     useMutation(
@@ -82,9 +176,9 @@ const page = ({ params: { roleId } }: PageProps) => {
 
     createRolePermission(rolePermissions);
   };
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
+  // if (isLoading) {
+  //   return <p>Loading...</p>;
+  // }
 
   return (
     <>
@@ -107,7 +201,7 @@ const page = ({ params: { roleId } }: PageProps) => {
             onSubmit={handleSubmit(handleSubmitClick)}
           >
             <div className="flex justify-start items-center flex-wrap">
-              {rolePerm?.map((perm) => (
+              {newArray?.map((perm) => (
                 <div
                   key={perm.permissionId}
                   className="flex items-center m-2 border rounded-full border-gray-200 p-2"
