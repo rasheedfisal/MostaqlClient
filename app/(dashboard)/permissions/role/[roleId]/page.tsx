@@ -30,16 +30,8 @@ interface rolePerm {
   [key: string]: boolean;
 }
 
-interface IRolePermissions {
-  permissionId: string;
-  permissionName: string;
-  permissionDescription: string;
-  isEnabled: boolean;
-}
-
 const page = ({ params: { roleId } }: PageProps) => {
   const token = useAccessToken();
-  const [newArray, setNewArray] = useState<IRolePermissions[]>([]);
 
   const [allPermission, rolePermission] = useQueries({
     queries: [
@@ -51,93 +43,11 @@ const page = ({ params: { roleId } }: PageProps) => {
       {
         queryKey: ["userRolePermissions"],
         queryFn: () => getRolePermissionFn(roleId, token),
+        staleTime: 0,
+        cacheTime: 0,
       },
     ],
   });
-
-  if (allPermission.isLoading || rolePermission.isLoading)
-    return "Loading Permissions...";
-
-  if (allPermission.error) {
-    toast.error((allPermission.error as any).response?.data?.msg, {
-      position: "top-right",
-    });
-    return;
-  }
-
-  if (rolePermission.error) {
-    toast.error((rolePermission.error as any).response?.data?.msg, {
-      position: "top-right",
-    });
-    return;
-  }
-
-  if (!allPermission.isSuccess || !rolePermission.isSuccess) {
-    toast.error("Server Error", {
-      position: "top-right",
-    });
-    return;
-  }
-  const arrPermissions = [...allPermission.data!]
-    .concat()
-    .sort((a, b) => (a.perm_name < b.perm_name ? -1 : 1));
-  const arrRolePermission = [...rolePermission.data!.permissions]
-    .concat()
-    .sort((a, b) => (a.perm_name < b.perm_name ? -1 : 1));
-
-  // const newArray: IRolePermissions[] = [];
-  for (let i = 0; i < arrPermissions.length; i++) {
-    if (arrRolePermission[i]) {
-      if (arrPermissions[i].perm_name === arrRolePermission[i].perm_name) {
-        setNewArray((prev) => [
-          ...prev,
-          {
-            permissionId: arrPermissions[i].id,
-            permissionName: arrPermissions[i].perm_name,
-            permissionDescription: arrPermissions[i].perm_description,
-            isEnabled: true,
-          },
-        ]);
-      } else {
-        setNewArray((prev) => [
-          ...prev,
-          {
-            permissionId: arrPermissions[i].id,
-            permissionName: arrPermissions[i].perm_name,
-            permissionDescription: arrPermissions[i].perm_description,
-            isEnabled: false,
-          },
-        ]);
-      }
-    } else {
-      setNewArray((prev) => [
-        ...prev,
-        {
-          permissionId: arrPermissions[i].id,
-          permissionName: arrPermissions[i].perm_name,
-          permissionDescription: arrPermissions[i].perm_description,
-          isEnabled: false,
-        },
-      ]);
-    }
-  }
-  // const { isLoading, data: rolePerm } = useQuery(
-  //   ["rolePermissions"],
-  //   () => useRolePermissions(roleId, token),
-  //   {
-  //     select: (data) => data,
-  //     retry: 1,
-  //     staleTime: 0,
-  //     cacheTime: 0,
-  //     onError: (error) => {
-  //       if ((error as any).response?.data?.msg) {
-  //         toast.error((error as any).response?.data?.msg, {
-  //           position: "top-right",
-  //         });
-  //       }
-  //     },
-  //   }
-  // );
 
   const { isLoading: isPermessionLoading, mutate: createRolePermission } =
     useMutation(
@@ -160,9 +70,7 @@ const page = ({ params: { roleId } }: PageProps) => {
     mode: "onBlur",
   });
   const handleSubmitClick = (data: rolePerm) => {
-    // console.log(data);
     let permission: string[] = [];
-
     for (let index = 0; index < Object.keys(data).length; index++) {
       if (Object.values(data)[index] !== undefined) {
         if (Object.values(data)[index]) {
@@ -173,12 +81,36 @@ const page = ({ params: { roleId } }: PageProps) => {
     const rolePermissions: AddRolePermissions = {
       permissions: permission,
     };
-
     createRolePermission(rolePermissions);
   };
-  // if (isLoading) {
-  //   return <p>Loading...</p>;
-  // }
+
+  if (allPermission.isLoading || rolePermission.isLoading)
+    return <p>Loading Permissions...</p>;
+
+  if (allPermission.error) {
+    toast.error((allPermission.error as any).response?.data?.msg, {
+      position: "top-right",
+    });
+  }
+
+  if (rolePermission.error) {
+    toast.error((rolePermission.error as any).response?.data?.msg, {
+      position: "top-right",
+    });
+  }
+
+  if (!allPermission.isSuccess || !rolePermission.isSuccess) {
+    toast.error("Server Error", {
+      position: "top-right",
+    });
+  }
+
+  const newPermissions = allPermission.data?.map((obj) => ({
+    ...obj,
+    isEnabled: rolePermission.data?.permissions.some(
+      (el) => el.perm_name === obj.perm_name
+    ),
+  }));
 
   return (
     <>
@@ -201,17 +133,17 @@ const page = ({ params: { roleId } }: PageProps) => {
             onSubmit={handleSubmit(handleSubmitClick)}
           >
             <div className="flex justify-start items-center flex-wrap">
-              {newArray?.map((perm) => (
+              {newPermissions?.map((perm) => (
                 <div
-                  key={perm.permissionId}
+                  key={perm.id}
                   className="flex items-center m-2 border rounded-full border-gray-200 p-2"
                 >
                   <label className="flex items-center">
                     <div className="relative inline-flex items-center">
                       <input
-                        {...register(`${perm.permissionId}`)}
+                        {...register(`${perm.id}`)}
                         type="checkbox"
-                        name={perm.permissionId}
+                        name={perm.id}
                         className="w-10 h-4 transition bg-gray-200 border-none rounded-full shadow-inner outline-none appearance-none toggle checked:bg-primary-light disabled:bg-gray-200 focus:outline-none"
                         defaultChecked={perm.isEnabled}
                         onChange={(e) => (perm.isEnabled = e.target.checked)}
@@ -219,7 +151,7 @@ const page = ({ params: { roleId } }: PageProps) => {
                       <span className="absolute top-0 left-0 w-4 h-4 transition-all transform scale-150 bg-white rounded-full shadow-sm"></span>
                     </div>
                     <label className="ml-3 text-sm font-normal text-gray-500 dark:text-gray-400">
-                      {perm.permissionDescription}
+                      {perm.perm_description}
                     </label>
                   </label>
                 </div>
