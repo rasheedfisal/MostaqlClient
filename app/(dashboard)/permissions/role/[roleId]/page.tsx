@@ -19,6 +19,7 @@ import {
 import { useQueries } from "@tanstack/react-query";
 // import { IPermission } from "../../../../../typings";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 type PageProps = {
   params: {
     roleId: string;
@@ -32,7 +33,7 @@ interface rolePerm {
 
 const page = ({ params: { roleId } }: PageProps) => {
   const token = useAccessToken();
-
+  const router = useRouter();
   const [allPermission, rolePermission] = useQueries({
     queries: [
       {
@@ -54,8 +55,9 @@ const page = ({ params: { roleId } }: PageProps) => {
       (rolePermissions: AddRolePermissions) =>
         addPermissionsToRoleFn(rolePermissions, roleId, token),
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           toast.success("Role Permissions Updated successfully");
+          router.push("/roles");
         },
         onError: (error: any) => {
           if ((error as any).response?.data?.msg) {
