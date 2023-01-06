@@ -151,7 +151,7 @@ const NavBar = ({
               openSearchPanel={openSearchPanel}
               openSettingsPanel={openSettingsPanel}
               openUserProfile={openUserProfile}
-              setIsMobileSubMenuOpen={setIsMobileSubMenuOpen}
+              // setIsMobileSubMenuOpen={setIsMobileSubMenuOpen}
               toggleTheme={toggleTheme}
             />
           )}

@@ -131,6 +131,10 @@ export default function RootLayout({
   useUpdateEffect(() => {
     setColors(color);
   }, []);
+
+  useUpdateEffect(() => {
+    setTimeout(() => setIsMobileSubMenuOpen(0), 100);
+  }, [isNotificationsPanelOpen, isSearchPanelOpen, openSetting]);
   // useUpdateEffect(() => {
   //   setIsDark(isDark);
   // }, [isDark]);

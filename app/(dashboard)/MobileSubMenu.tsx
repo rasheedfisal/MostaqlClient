@@ -10,7 +10,6 @@ import { useStateContext } from "../../context/AppConext";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 type MobileSubProps = {
-  setIsMobileSubMenuOpen: Cycle;
   toggleTheme: MouseEventHandler;
   isDark: boolean;
   openNotificationsPanel: MouseEventHandler;
@@ -22,7 +21,6 @@ type MobileSubProps = {
 };
 
 const MobileSubMenu = ({
-  setIsMobileSubMenuOpen,
   toggleTheme,
   isDark,
   openNotificationsPanel,
@@ -34,11 +32,6 @@ const MobileSubMenu = ({
 }: MobileSubProps) => {
   const router = useRouter();
   const stateContext = useStateContext();
-
-  const NotificationButton = () => {
-    openNotificationsPanel;
-    setIsMobileSubMenuOpen();
-  };
 
   const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
     onSuccess: () => {
@@ -139,7 +132,7 @@ const MobileSubMenu = ({
         {/* <!-- Notification button --> */}
         <button
           // @click="openNotificationsPanel(); $nextTick(() => { isMobileSubMenuOpen = false })"
-          onClick={NotificationButton}
+          onClick={openNotificationsPanel}
           className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
         >
           <span className="sr-only">Open notifications panel</span>
@@ -162,11 +155,7 @@ const MobileSubMenu = ({
 
         {/* <!-- Search button --> */}
         <button
-          onClick={() => {
-            openSearchPanel;
-            setIsMobileSubMenuOpen();
-            // setTimeout(() => setIsMobileSubMenuOpen(), 100);
-          }}
+          onClick={openSearchPanel}
           // @click="openSearchPanel(); $nextTick(() => { $refs.searchInput.focus(); setTimeout(() => {isMobileSubMenuOpen= false}, 100) })"
           className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
         >
@@ -190,10 +179,7 @@ const MobileSubMenu = ({
 
         {/* <!-- Settings button --> */}
         <button
-          onClick={() => {
-            openSettingsPanel;
-            setIsMobileSubMenuOpen();
-          }}
+          onClick={openSettingsPanel}
           // @click="openSettingsPanel(); $nextTick(() => { isMobileSubMenuOpen = false })"
           className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
         >
