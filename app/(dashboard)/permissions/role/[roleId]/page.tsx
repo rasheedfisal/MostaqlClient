@@ -18,7 +18,6 @@ import {
 } from "../../../../api/rolesApi";
 import { useQueries } from "@tanstack/react-query";
 // import { IPermission } from "../../../../../typings";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 type PageProps = {
   params: {

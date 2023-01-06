@@ -23,6 +23,7 @@ const ManageUsers = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const token = useAccessToken();
+
   const queryClient = useQueryClient();
   const {
     isLoading,

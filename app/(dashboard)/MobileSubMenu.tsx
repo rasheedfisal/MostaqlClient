@@ -35,6 +35,11 @@ const MobileSubMenu = ({
   const router = useRouter();
   const stateContext = useStateContext();
 
+  const NotificationButton = () => {
+    openNotificationsPanel;
+    setIsMobileSubMenuOpen();
+  };
+
   const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
     onSuccess: () => {
       stateContext.tokenDispatch({ type: "SET_Token", payload: null });
@@ -134,10 +139,7 @@ const MobileSubMenu = ({
         {/* <!-- Notification button --> */}
         <button
           // @click="openNotificationsPanel(); $nextTick(() => { isMobileSubMenuOpen = false })"
-          onClick={() => {
-            openNotificationsPanel;
-            setIsMobileSubMenuOpen();
-          }}
+          onClick={NotificationButton}
           className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
         >
           <span className="sr-only">Open notifications panel</span>
