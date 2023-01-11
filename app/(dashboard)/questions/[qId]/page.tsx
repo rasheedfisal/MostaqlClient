@@ -22,7 +22,7 @@ type PageProps = {
   };
 };
 
-export const updateQuestionSchema = object({
+const updateQuestionSchema = object({
   question: string().min(1, "Question is required"),
   answer: string().min(1, "Answer is required"),
   order_no: z

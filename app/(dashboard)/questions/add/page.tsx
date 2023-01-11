@@ -17,7 +17,7 @@ import { createQuestionFn } from "../../../api/questionsApi";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 import FormTextArea from "../../../../components/FormTextArea";
 
-export const createQuestionSchema = object({
+const createQuestionSchema = object({
   question: string().min(1, "Question is required"),
   answer: string().min(1, "Answer is required"),
   order_no: z
