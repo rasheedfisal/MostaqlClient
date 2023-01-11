@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { object, string, TypeOf } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,7 @@ const loginSchema = object({
 export type LoginInput = TypeOf<typeof loginSchema>;
 
 const login = () => {
+  const [useToken, setUseToken] = useState("");
   const router = useRouter();
 
   const methods = useForm<LoginInput>({
@@ -37,8 +38,7 @@ const login = () => {
   const stateContext = useStateContext();
 
   // API Get Current Logged-in user
-  const accessToken = stateContext.tokenState.token?.token;
-  const query = useQuery(["authUser", 1200], () => getMeFn(accessToken), {
+  const query = useQuery(["authUser", 1200], () => getMeFn(useToken), {
     enabled: false,
     select: (data) => data,
     retry: 1,
@@ -53,6 +53,7 @@ const login = () => {
     (userData: LoginInput) => loginUserFn(userData),
     {
       onSuccess: (data) => {
+        setUseToken(data.token);
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
         query.refetch();
         toast.success("You successfully logged in");

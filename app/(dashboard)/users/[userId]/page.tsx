@@ -118,17 +118,6 @@ const page = ({ params: { userId } }: PageProps) => {
     resolver: zodResolver(updateUserSchema),
   });
 
-  const {
-    formState: { isSubmitting },
-  } = methods;
-
-  useEffect(() => {
-    if (isSubmitting) {
-      methods.reset();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSubmitting]);
-
   if (isUserLoading) {
     return <p>Loading...</p>;
   }

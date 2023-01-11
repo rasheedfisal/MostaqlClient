@@ -83,7 +83,7 @@ const page = () => {
               </div>
             </div>
           </div>
-          <div className="block w-full relative overflow-x-auto">
+          <div className="block w-full overflow-x-auto">
             <div className="relative">
               {isDeleteing && <TableLoader />}
               <table className="items-center bg-transparent w-full border-collapse ">

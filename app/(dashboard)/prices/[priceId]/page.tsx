@@ -98,17 +98,6 @@ const page = ({ params: { priceId } }: PageProps) => {
     resolver: zodResolver(updatePriceSchema),
   });
 
-  const {
-    formState: { isSubmitting },
-  } = methods;
-
-  useEffect(() => {
-    if (isSubmitting) {
-      methods.reset();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSubmitting]);
-
   if (isPriceLoading) {
     return <p>Loading...</p>;
   }

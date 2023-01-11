@@ -5,34 +5,38 @@ import Link from "next/link";
 
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createUserFn } from "../../../api/usersApi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import FormInput from "../../../../components/FormInput";
-import SubmitButton from "../../../../components/SubmitButton";
-import useAccessToken from "../../../../hooks/useAccessToken";
+import FormInput from "../../../../../../components/FormInput";
+import SubmitButton from "../../../../../../components/SubmitButton";
+import useAccessToken from "../../../../../../hooks/useAccessToken";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import { createRoleFn } from "../../../api/rolesApi";
-import useUpdateEffect from "../../../../hooks/useUpdateEffect";
+import { createRoleFn } from "../../../../../api/rolesApi";
+import useUpdateEffect from "../../../../../../hooks/useUpdateEffect";
+import { createSubCategoryFn } from "../../../../../api/categoryApi";
 
-export const createRoleSchema = object({
-  role_name: string().min(1, "Role is required"),
-  role_description: string().min(1, "Description is required"),
+type PageProps = {
+  params: {
+    catId: string;
+  };
+};
+export const createSubCatSchema = object({
+  name: string().min(1, "Name is required"),
 });
 
-export type ICreateUpdateRole = TypeOf<typeof createRoleSchema>;
-const Add = () => {
+export type ICreateSubCat = TypeOf<typeof createSubCatSchema>;
+const Add = ({ params: { catId } }: PageProps) => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createRole } = useMutation(
-    (role: ICreateUpdateRole) => createRoleFn(role, token),
+  const { isLoading, mutate: createSubCat } = useMutation(
+    (subcat: ICreateSubCat) => createSubCategoryFn(catId, subcat, token),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["roles"]);
-        toast.success("Role created successfully");
+        queryClient.invalidateQueries(["subcategories", catId]);
+        toast.success("Sub Category created successfully");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -44,8 +48,8 @@ const Add = () => {
     }
   );
 
-  const methods = useForm<ICreateUpdateRole>({
-    resolver: zodResolver(createRoleSchema),
+  const methods = useForm<ICreateSubCat>({
+    resolver: zodResolver(createSubCatSchema),
   });
   const {
     formState: { isSubmitSuccessful },
@@ -58,17 +62,17 @@ const Add = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  const onSubmitHandler: SubmitHandler<ICreateUpdateRole> = (values) => {
-    createRole(values);
+  const onSubmitHandler: SubmitHandler<ICreateSubCat> = (values) => {
+    createSubCat(values);
   };
 
   return (
     <>
       {/* <!-- Content header --> */}
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
-        <h1 className="text-2xl font-semibold">Add Role</h1>
+        <h1 className="text-2xl font-semibold">Add Sub Category</h1>
         <Link
-          href="/roles"
+          href={`/categories/sub/${catId}`}
           className="px-4 py-2 flex items-center text-sm text-white rounded-md bg-primary hover:bg-primary-dark focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark"
         >
           <ChevronDoubleLeftIcon className="w-5 h-5" />
@@ -84,13 +88,8 @@ const Add = () => {
               autoComplete="off"
               onSubmit={methods.handleSubmit(onSubmitHandler)}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <FormInput label="Name" type="text" name="role_name" />
-                <FormInput
-                  label="Description"
-                  type="text"
-                  name="role_description"
-                />
+              <div className="grid grid-cols-1">
+                <FormInput label="Name" type="text" name="name" />
               </div>
               <div className="flex">
                 <SubmitButton

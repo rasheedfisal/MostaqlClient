@@ -6,6 +6,7 @@ import {
 } from "../../typings";
 import { privateAuthApi } from "./axios";
 import { ICreateUpdateRole } from "../(dashboard)/roles/add/page";
+import { IUpdateRole } from "../(dashboard)/roles/[roleId]/page";
 
 interface RolePermissions {
   permissions: IPermission[];
@@ -88,17 +89,23 @@ export const updateRoleFn = async ({
   accessToken,
 }: {
   id: string;
-  data: ICreateUpdateRole;
+  data: IUpdateRole;
   accessToken: string;
 }) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
-  const response = await privateAuthApi.put<IRole>(`users/${id}`, data);
+  const response = await privateAuthApi.put<IRole>(`roles/${id}`, data);
   return response.data;
 };
 
-export const deleteRoleFn = async (id: string, accessToken: string) => {
+export const deleteRoleFn = async ({
+  id,
+  accessToken,
+}: {
+  id: string;
+  accessToken: string;
+}) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
