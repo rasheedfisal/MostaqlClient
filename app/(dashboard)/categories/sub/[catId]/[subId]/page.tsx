@@ -26,7 +26,7 @@ type PageProps = {
   };
 };
 
-export const updateSubCatSchema = object({
+const updateSubCatSchema = object({
   name: string().min(1, "Name is required"),
 }).partial();
 
