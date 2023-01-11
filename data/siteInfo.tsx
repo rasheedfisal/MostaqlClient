@@ -4,6 +4,7 @@ import {
   CubeTransparentIcon,
   HandRaisedIcon,
   AdjustmentsVerticalIcon,
+  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/solid";
 
 interface ILinks {
@@ -37,6 +38,18 @@ export const links: ILinks[] = [
       {
         name: "Manage",
         path: "/projects",
+      },
+    ],
+    open: false,
+    active: false,
+  },
+  {
+    title: "Questions",
+    icon: <QuestionMarkCircleIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Manage",
+        path: "/questions",
       },
     ],
     open: false,
