@@ -17,7 +17,7 @@ import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { createRoleFn } from "../../../api/rolesApi";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
-export const createRoleSchema = object({
+const createRoleSchema = object({
   role_name: string().min(1, "Role is required"),
   role_description: string().min(1, "Description is required"),
 });

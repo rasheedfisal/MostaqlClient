@@ -3,7 +3,6 @@ import React from "react";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAccessToken from "../../../../hooks/useAccessToken";
@@ -15,7 +14,6 @@ import {
 import FormInput from "../../../../components/FormInput";
 import Link from "next/link";
 import { getRoleFn, updateRoleFn } from "../../../api/rolesApi";
-import { createRoleSchema, ICreateUpdateRole } from "../add/page";
 
 type PageProps = {
   params: {
@@ -23,7 +21,7 @@ type PageProps = {
   };
 };
 
-export const updateRoleSchema = object({
+const updateRoleSchema = object({
   role_name: string().min(1, "Role is required"),
   role_description: string().min(1, "Description is required"),
 }).partial();
@@ -83,15 +81,15 @@ const page = ({ params: { roleId } }: PageProps) => {
     }
   );
 
-  const methods = useForm<ICreateUpdateRole>({
-    resolver: zodResolver(createRoleSchema),
+  const methods = useForm<IUpdateRole>({
+    resolver: zodResolver(updateRoleSchema),
   });
 
   if (isPriceLoading) {
     return <p>Loading...</p>;
   }
 
-  const onSubmitHandler: SubmitHandler<ICreateUpdateRole> = (values) => {
+  const onSubmitHandler: SubmitHandler<IUpdateRole> = (values) => {
     updateRole({ id: roleId, data: values, accessToken: token });
   };
 
