@@ -13,7 +13,6 @@ import {
 } from "@heroicons/react/24/solid";
 import FormInput from "../../../../../../components/FormInput";
 import Link from "next/link";
-import { getRoleFn, updateRoleFn } from "../../../../../api/rolesApi";
 import {
   getSubCategoryFn,
   updateSubCategoryFn,

@@ -13,7 +13,6 @@ import useAccessToken from "../../../../../../hooks/useAccessToken";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import { createRoleFn } from "../../../../../api/rolesApi";
 import useUpdateEffect from "../../../../../../hooks/useUpdateEffect";
 import { createSubCategoryFn } from "../../../../../api/categoryApi";
 
@@ -22,7 +21,7 @@ type PageProps = {
     catId: string;
   };
 };
-export const createSubCatSchema = object({
+const createSubCatSchema = object({
   name: string().min(1, "Name is required"),
 });
 
