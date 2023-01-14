@@ -36,8 +36,8 @@ const ManageUsers = () => {
     {
       select: (data) => data,
       retry: 1,
-      staleTime: 0,
-      cacheTime: 0,
+      // staleTime: 0,
+      // cacheTime: 0,
       keepPreviousData: true,
       onSuccess: (e) => {
         if (e?.totalItems) {
