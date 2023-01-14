@@ -6,20 +6,22 @@ import { toast } from "react-toastify";
 import useAccessToken from "../../../hooks/useAccessToken";
 import { getAllProjectsFn } from "../../api/projectsApi";
 import StatusBadge from "../../../components/StatusBadge";
-import noImage from "../../../public/noImg.jpg";
 import { AdjustmentsVerticalIcon } from "@heroicons/react/24/solid";
 import ReactPaginate from "react-paginate";
 import { ChangeEvent, useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import TableLoader from "../../../components/TableLoader";
+import useDebounce from "../../../hooks/useDebounce";
 const page = () => {
   const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const token = useAccessToken();
   const queryClient = useQueryClient();
+  const debouncedSearchQuery = useDebounce(searchQuery, 600);
 
   const {
     isLoading,
@@ -27,13 +29,13 @@ const page = () => {
     isFetching,
     isPreviousData,
   } = useQuery(
-    ["projects", pageNumber, pageSize],
-    () => getAllProjectsFn(token, pageNumber, pageSize),
+    ["projects", pageNumber, pageSize, debouncedSearchQuery],
+    () => getAllProjectsFn(token, pageNumber, pageSize, debouncedSearchQuery),
     {
       select: (data) => data,
       retry: 1,
-      staleTime: 0,
-      cacheTime: 0,
+      // staleTime: 0,
+      // cacheTime: 0,
       keepPreviousData: true,
       onSuccess: (e) => {
         if (e?.totalItems) {
@@ -72,11 +74,20 @@ const page = () => {
       projects?.results.length !== undefined &&
       projects?.results.length > 0
     ) {
-      queryClient.prefetchQuery(["projects", pageNumber, pageSize], () =>
-        getAllProjectsFn(token, pageNumber, pageSize)
+      queryClient.prefetchQuery(
+        ["projects", pageNumber, pageSize, debouncedSearchQuery],
+        () =>
+          getAllProjectsFn(token, pageNumber, pageSize, debouncedSearchQuery)
       );
     }
-  }, [projects, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [
+    projects,
+    pageNumber,
+    pageSize,
+    debouncedSearchQuery,
+    isPreviousData,
+    queryClient,
+  ]);
 
   if (isLoading) {
     return <p>Loading...</p>;
@@ -117,8 +128,9 @@ const page = () => {
                 </div>
                 <input
                   type="text"
-                  name="price"
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   id="price"
+                  value={searchQuery}
                   className="block w-full rounded-md border-gray-300 pl-7 pr-12 sm:text-sm dark:bg-dark"
                   placeholder="search..."
                 />
@@ -177,7 +189,7 @@ const page = () => {
                 <tbody>
                   {projects?.results.map((project) => (
                     <tr key={project.id}>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs font-semibold whitespace-nowrap p-4 ">
                         {project.proj_title}
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
@@ -255,7 +267,7 @@ const page = () => {
                             <img
                               className="object-cover w-full h-full rounded-full"
                               src={
-                                project.Category.cat_img?.replace("\\", "/") ??
+                                project.SubCategory.Category.cat_img ??
                                 "noImg.jpg"
                               }
                               alt="avatar"
@@ -267,8 +279,11 @@ const page = () => {
                             ></div>
                           </div>
                           <div>
-                            <p className="font-semibold">
-                              {project.Category.cat_name}
+                            <p className="font-semibold text-xs">
+                              {project.SubCategory.Category.cat_name}
+                            </p>
+                            <p className="font-semibold text-gray-400 text-xs">
+                              {project.SubCategory.name}
                             </p>
                           </div>
                         </div>
@@ -304,7 +319,7 @@ const page = () => {
                   <ReactPaginate
                     breakLabel="..."
                     nextLabel="next >"
-                    onPageChange={(e) => setPageNumber(e.selected)}
+                    onPageChange={(e) => setPageNumber(e.selected + 1)}
                     pageRangeDisplayed={10}
                     pageCount={pages}
                     previousLabel="< previous"

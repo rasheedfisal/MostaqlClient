@@ -254,7 +254,7 @@ const ManageUsers = () => {
                   <ReactPaginate
                     breakLabel="..."
                     nextLabel="next >"
-                    onPageChange={(e) => setPageNumber(e.selected)}
+                    onPageChange={(e) => setPageNumber(e.selected + 1)}
                     pageRangeDisplayed={10}
                     pageCount={pages}
                     previousLabel="< previous"

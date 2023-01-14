@@ -33,6 +33,10 @@ type PriceRange = Pick<IPriceRange, "range_name">;
 type ProjStatus = Pick<IProjectStatus, "stat_name">;
 type client = Omit<ISysUser, "Role" | "is_active">;
 
+type ProjectCat = {
+  name: string;
+  Category: Category;
+};
 interface clientProfile extends client {
   userprofiles: {
     about_user: string;
@@ -49,7 +53,7 @@ interface ProjectList {
   attatchment_file: string;
   OffersCount: number;
   owner: owner;
-  Category: Category;
+  SubCategory: ProjectCat;
   PriceRange: PriceRange;
   ProjStatus: ProjStatus;
 }
@@ -67,13 +71,14 @@ interface OfferList {
 export const getAllProjectsFn = async (
   accessToken: string | undefined,
   pageNo: number,
-  recordSize: number
+  recordSize: number,
+  searchQuery: string
 ) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.get<IPaginatedResponse<ProjectList>>(
-    `project?page=${pageNo}&size=${recordSize}`
+    `project?page=${pageNo}&size=${recordSize}&search=${searchQuery}`
   );
   return response.data;
 };

@@ -77,6 +77,11 @@ export interface ICategory {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface ISubCategory {
+  id: string;
+  name: string;
+  createdAt: Date;
+}
 export interface IPriceRange {
   id: string;
   range_name: string;
