@@ -4,11 +4,28 @@ import {
   GenericResponse,
   ILoginResponse,
   IPaginatedResponse,
+  IRole,
   ISysUser,
   ISysUserResponse,
   IUser,
 } from "../../typings";
 import { privateAuthApi } from "./axios";
+
+interface UserCredentials {
+  id?: string;
+  fullname: string;
+  email: string;
+  phone: string;
+  imgPath: string;
+  is_active: boolean;
+  CreatedAt?: Date;
+  Role?: IRole;
+  usercredentials: {
+    id: string;
+    attachments: string;
+    is_authorized: boolean;
+  };
+}
 
 export const getAllUsersFn = async (
   accessToken: string | undefined,
@@ -90,6 +107,36 @@ export const lockUnlockUserFn = async ({
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.put<GenericResponse>(
     `users/lockunlock/${id}`
+  );
+  return response.data;
+};
+
+export const getAllCredentialUsersFn = async (
+  accessToken: string,
+  page: number,
+  size: number
+) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<
+    IPaginatedResponse<UserCredentials>
+  >(`users/credentials?page=${page}&size=${size}`);
+  return response.data;
+};
+
+export const authorizeUnAuthorizeUserFn = async ({
+  id,
+  accessToken,
+}: {
+  id: string;
+  accessToken: string;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<GenericResponse>(
+    `users/credentials/${id}`
   );
   return response.data;
 };

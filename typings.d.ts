@@ -13,6 +13,7 @@ export interface ISysUser {
   imgPath: string;
   is_active: boolean;
   Role?: IRole;
+  CreatedAt?: Date;
 }
 export interface IRole {
   id: string;
