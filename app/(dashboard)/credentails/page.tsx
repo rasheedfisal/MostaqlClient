@@ -142,7 +142,7 @@ const page = () => {
                       Email
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Phone
+                      Attatchment
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
                       Status
@@ -160,9 +160,7 @@ const page = () => {
                           <div className="relative w-8 h-8 mr-3 rounded-full md:block">
                             <img
                               className="object-cover w-full h-full rounded-full"
-                              src={
-                                user.imgPath?.replace("\\", "/") ?? "noImg.jpg"
-                              }
+                              src={user.imgPath ?? "noImg.jpg"}
                               alt="avatar"
                               loading="lazy"
                             />
@@ -181,7 +179,17 @@ const page = () => {
                         {user.email}
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {user.phone}
+                        {user.usercredentials?.attachments ? (
+                          <a
+                            href={user.usercredentials?.attachments}
+                            className="underline text-blue-700 text-sm cursor-pointer"
+                            target="_blank"
+                          >
+                            view
+                          </a>
+                        ) : (
+                          "N/A"
+                        )}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <AuthorizeStatusBadge
@@ -193,7 +201,7 @@ const page = () => {
                           <div
                             onClick={() =>
                               handleAuthorizeUnAuthorize(
-                                user.usercredentials.id,
+                                user.id!,
                                 user.usercredentials.is_authorized
                               )
                             }

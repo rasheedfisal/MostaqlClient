@@ -92,6 +92,10 @@ export const links: ILinks[] = [
         path: "/users",
       },
       {
+        name: "User Credentials",
+        path: "/credentails",
+      },
+      {
         name: "Roles",
         path: "/roles",
       },

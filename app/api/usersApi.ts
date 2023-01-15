@@ -119,7 +119,7 @@ export const getAllCredentialUsersFn = async (
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
-  const response = await privateAuthApi.put<
+  const response = await privateAuthApi.get<
     IPaginatedResponse<UserCredentials>
   >(`users/credentials?page=${page}&size=${size}`);
   return response.data;
