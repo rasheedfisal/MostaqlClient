@@ -38,7 +38,12 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     }
   };
   const setCurrentChatUser = (user: ISysUser): void => {
-    stateContext.chatDispatch({ type: "SET_Current_Chat", payload: user });
+    // console.log(user);
+    stateContext.chatDispatch({
+      type: "SET_Current_Chat",
+      payload: user,
+      setChat: true,
+    });
   };
 
   if (isLoading) {

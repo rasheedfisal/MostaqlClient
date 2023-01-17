@@ -7,6 +7,7 @@ type State = {
 };
 type ChatState = {
   currentChat: ISysUser | null;
+  getchat: boolean;
 };
 type TokenState = {
   token: ILoginResponse | null;
@@ -18,6 +19,7 @@ type Action = {
 type ChatAction = {
   type: string;
   payload: ISysUser | null;
+  setChat: boolean;
 };
 
 type TokenAction = {
@@ -34,6 +36,7 @@ const initialState: State = {
 };
 const initialChatState: ChatState = {
   currentChat: null,
+  getchat: false,
 };
 
 const initialTokenState: TokenState = {
@@ -86,6 +89,7 @@ const CurrenChatReducer = (state: ChatState, action: ChatAction) => {
       return {
         ...state,
         currentChat: action.payload,
+        getchat: action.setChat,
       };
     }
     default: {

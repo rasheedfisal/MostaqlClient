@@ -29,7 +29,6 @@ const page = () => {
   // const [loading, setLoading] = useState<boolean>(false);
   // const [pageNo, setPage] = useState(1);
   // const [hasMore, setHasMore] = useState(true);
-  const [enableQuery, setEnableQuery] = useState(false);
   const [sendMessage, setSendMessage] = useState<sendMessage>();
   const [chat, setChat] = useState<IChat[]>([]);
   // const [arrivalMessage, setArrivalMessage] = useState<IChat>();
@@ -67,7 +66,6 @@ const page = () => {
 
   useUpdateEffect(() => {
     socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
-
     socket.current.on("getMessage", (data) => {
       // setSendMessage({
       //   sender_id: data.sender_id,
@@ -76,24 +74,14 @@ const page = () => {
       // });
       console.log(data);
     });
-
-    if (currentChat !== null) {
-      setEnableQuery(true);
-    }
-    // scrollRef.current?.focus();
   }, []);
   useUpdateEffect(() => {
     if (currentChat !== null) {
       setCurrentChat(stateContext.chatState.currentChat);
-      setEnableQuery(true);
     } else {
       setCurrentChat(stateContext.chatState.currentChat);
-      if (currentChat !== null) {
-        setEnableQuery(true);
-      }
     }
     socket.current?.emit("addUser", stateContext.chatState.currentChat?.email);
-    // scrollRef.current?.focus();
   }, [stateContext.chatState.currentChat]);
 
   const onSubmitHandler: SubmitHandler<ICreateMessage> = async (values) => {
@@ -142,13 +130,13 @@ const page = () => {
     ({ pageParam = 1 }) =>
       getAllUsersChatFn(
         token,
-        { receiver_id: currentChat?.email! },
+        { receiver_id: currentChat?.id! },
         pageParam,
         10
       ),
     {
       retry: 1,
-      enabled: enableQuery,
+      enabled: stateContext.chatState.getchat,
       getPreviousPageParam: (lastPage, allPages) => {
         return lastPage.length ? allPages.length + 1 : undefined;
       },
@@ -162,6 +150,14 @@ const page = () => {
           //     parseISO(b.createdAt.toString()).getTime()
           // )
         });
+      },
+      onError: (error) => {
+        if ((error as any).response?.data?.msg?.message) {
+          // toast.error((error as any).response?.data?.msg?.message, {
+          //   position: "top-right",
+          // });
+          console.log((error as any).response?.data?.msg?.message);
+        }
       },
     }
   );
