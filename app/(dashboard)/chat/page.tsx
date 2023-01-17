@@ -35,7 +35,7 @@ const page = () => {
   const stateContext = useStateContext();
   const token = useAccessToken();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const socket = useRef<Socket>();
+  const socket = useRef<any>();
 
   const methods = useForm<ICreateMessage>({
     resolver: zodResolver(createMessageSchema),
@@ -59,11 +59,12 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
-    socket.current = io("http://194.195.87.30:89", {
-      transports: ["websocket"],
-      autoConnect: false,
-    }); //http://localhost:3002
-    socket.current.on("getMessage", (data) => {
+    // socket.current = io("http://194.195.87.30:89", {
+    //   transports: ["websocket", "polling"],
+    //   autoConnect: false,
+    // }); //http://localhost:3002
+    socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
+    socket.current.on("getMessage", (data: any) => {
       // setSendMessage({
       //   sender_id: data.sender_id,
       //   receiver_id: data.receiver_id,
