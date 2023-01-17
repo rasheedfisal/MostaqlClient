@@ -66,7 +66,7 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
-    socket.current = io("http://194.195.87.30:89");
+    socket.current = io("http://localhost:3002");
 
     socket.current.on("getMessage", (data) => {
       setSendMessage({
@@ -83,7 +83,7 @@ const page = () => {
     // scrollRef.current?.focus();
   }, []);
   useUpdateEffect(() => {
-    socket?.current?.emit("addUser", "2");
+    socket?.current?.emit("addUser", stateContext.state.authUser?.email);
     if (currentChat !== null) {
       setCurrentChat(stateContext.chatState.currentChat);
       setEnableQuery(true);
@@ -142,7 +142,7 @@ const page = () => {
     ({ pageParam = 1 }) =>
       getAllUsersChatFn(
         token,
-        { receiver_id: currentChat?.id! },
+        { receiver_id: currentChat?.email! },
         pageParam,
         10
       ),
