@@ -67,7 +67,7 @@ const page = () => {
 
   useUpdateEffect(() => {
     socket.current = io("http://194.195.87.30:89");
-    socket.current.emit("addUser", "2");
+
     socket.current.on("getMessage", (data) => {
       setSendMessage({
         sender_id: data.senderId,
@@ -83,6 +83,7 @@ const page = () => {
     // scrollRef.current?.focus();
   }, []);
   useUpdateEffect(() => {
+    socket?.current?.emit("addUser", "2");
     if (currentChat !== null) {
       setCurrentChat(stateContext.chatState.currentChat);
       setEnableQuery(true);
