@@ -66,14 +66,14 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
-    socket.current = io("http://194.195.87.30:89");
+    socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
 
     socket.current.on("getMessage", (data) => {
-      setSendMessage({
-        sender_id: data.senderId,
-        receiver_id: data.text,
-        text: Date.now().toString(),
-      });
+      // setSendMessage({
+      //   sender_id: data.sender_id,
+      //   receiver_id: data.receiver_id,
+      //   text: Date.now().toString(),
+      // });
       console.log(data);
     });
 
@@ -92,7 +92,7 @@ const page = () => {
         setEnableQuery(true);
       }
     }
-    socket?.current?.emit("addUser", stateContext.chatState.currentChat?.email);
+    socket.current?.emit("addUser", stateContext.chatState.currentChat?.email);
     // scrollRef.current?.focus();
   }, [stateContext.chatState.currentChat]);
 
@@ -109,7 +109,7 @@ const page = () => {
         message: values.message,
       });
       if (chat) {
-        socket?.current?.emit("sendMessage", {
+        socket.current?.emit("sendMessage", {
           senderId: stateContext.state.authUser?.email,
           receiverId: currentChat?.email!,
           text: values.message,
