@@ -67,6 +67,7 @@ const page = () => {
 
   useUpdateEffect(() => {
     socket.current = io("http://194.195.87.30:89");
+    socket.current.emit("addUser", "2");
     socket.current.on("getMessage", (data) => {
       setSendMessage({
         sender_id: data.senderId,
@@ -108,8 +109,8 @@ const page = () => {
       });
       if (chat) {
         socket?.current?.emit("sendMessage", {
-          senderId: "12345",
-          receiverId: currentChat?.id!,
+          senderId: "2",
+          receiverId: "1",
           text: values.message,
         });
         console.log("send message");
