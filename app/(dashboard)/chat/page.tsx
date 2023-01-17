@@ -1,21 +1,25 @@
 "use client";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import React, { useCallback, useRef, useState } from "react";
+
+import React, { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useStateContext } from "../../../context/AppConext";
 import useAccessToken from "../../../hooks/useAccessToken";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
-import { IPaginatedResponse, ISysUser } from "../../../typings";
+import { ISysUser } from "../../../typings";
 import { createChatFn, getAllUsersChatFn, IChat } from "../../api/chatApi";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSearch from "../../../components/FormSearch";
-import useFetchChat from "../../../hooks/useFetchChat";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { parseISO } from "date-fns";
-// import { io } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
+type sendMessage = {
+  sender_id: string;
+  receiver_id: string;
+  text: string;
+};
 const createMessageSchema = object({
   message: string().min(1, "message is required"),
 });
@@ -26,11 +30,13 @@ const page = () => {
   // const [pageNo, setPage] = useState(1);
   // const [hasMore, setHasMore] = useState(true);
   const [enableQuery, setEnableQuery] = useState(false);
+  const [sendMessage, setSendMessage] = useState<sendMessage>();
   const [chat, setChat] = useState<IChat[]>([]);
   // const [arrivalMessage, setArrivalMessage] = useState<IChat>();
   const stateContext = useStateContext();
   const token = useAccessToken();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const socket = useRef<Socket>();
 
   const methods = useForm<ICreateMessage>({
     resolver: zodResolver(createMessageSchema),
@@ -60,6 +66,16 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
+    socket.current = io("http://194.195.87.30:89");
+    socket.current.on("getMessage", (data) => {
+      setSendMessage({
+        sender_id: data.senderId,
+        receiver_id: data.text,
+        text: Date.now().toString(),
+      });
+      console.log("get message");
+    });
+
     if (currentChat !== null) {
       setEnableQuery(true);
     }
@@ -91,6 +107,12 @@ const page = () => {
         message: values.message,
       });
       if (chat) {
+        socket?.current?.emit("sendMessage", {
+          senderId: "12345",
+          receiverId: currentChat?.id!,
+          text: values.message,
+        });
+        console.log("send message");
         setChat((prev) => [...prev, response]);
       } else {
         toast.error("search or select user to start the chat", {
