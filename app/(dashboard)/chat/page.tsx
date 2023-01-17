@@ -54,12 +54,6 @@ const page = () => {
 
   useUpdateEffect(() => {
     if (scrollRef.current) {
-      // scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-      // scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      // scrollRef.current.scrollTo({
-      //   top: -scrollRef.current.scrollHeight,
-      //   behavior: "smooth",
-      // });
       scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [chat]);
@@ -77,6 +71,7 @@ const page = () => {
       // });
       console.log(data);
     });
+    console.log(socket.current);
   }, []);
   useUpdateEffect(() => {
     if (currentChat !== null) {
