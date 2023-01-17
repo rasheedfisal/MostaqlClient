@@ -74,7 +74,7 @@ const page = () => {
         receiver_id: data.text,
         text: Date.now().toString(),
       });
-      console.log("get message");
+      console.log(data);
     });
 
     if (currentChat !== null) {
@@ -110,8 +110,8 @@ const page = () => {
       });
       if (chat) {
         socket?.current?.emit("sendMessage", {
-          senderId: "2",
-          receiverId: "1",
+          senderId: stateContext.state.authUser?.email,
+          receiverId: currentChat?.email!,
           text: values.message,
         });
         console.log("send message");
