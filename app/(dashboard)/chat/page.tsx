@@ -16,8 +16,8 @@ import { parseISO } from "date-fns";
 import io, { Socket } from "socket.io-client";
 
 type sendMessage = {
-  sender_id: string;
-  receiver_id: string;
+  senderId: string;
+  receiverId: string;
   text: string;
 };
 const createMessageSchema = object({
@@ -29,13 +29,12 @@ const page = () => {
   // const [loading, setLoading] = useState<boolean>(false);
   // const [pageNo, setPage] = useState(1);
   // const [hasMore, setHasMore] = useState(true);
-  const [sendMessage, setSendMessage] = useState<sendMessage>();
   const [chat, setChat] = useState<IChat[]>([]);
-  // const [arrivalMessage, setArrivalMessage] = useState<IChat>();
+  const [arrivalMessage, setArrivalMessage] = useState<IChat | null>(null);
   const stateContext = useStateContext();
   const token = useAccessToken();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const socket = useRef<any>();
+  const socket = useRef<Socket>();
 
   const methods = useForm<ICreateMessage>({
     resolver: zodResolver(createMessageSchema),
@@ -64,15 +63,21 @@ const page = () => {
     //   autoConnect: false,
     // }); //http://localhost:3002
     socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
-    socket.current.on("getMessage", (data: any) => {
+    socket.current.on("getMessage", (data: sendMessage) => {
+      const recevedMsg: IChat = {
+        sender_id: data.senderId,
+        receiver_id: data.receiverId,
+        message: data.text,
+        createdAt: new Date(),
+      };
       // setSendMessage({
       //   sender_id: data.sender_id,
       //   receiver_id: data.receiver_id,
       //   text: Date.now().toString(),
       // });
-      console.log(data);
+
+      setArrivalMessage(recevedMsg);
     });
-    console.log(socket.current);
   }, []);
   useUpdateEffect(() => {
     if (currentChat !== null) {
@@ -82,6 +87,12 @@ const page = () => {
     }
     socket.current?.emit("addUser", stateContext.chatState.currentChat?.email);
   }, [stateContext.chatState.currentChat]);
+
+  useUpdateEffect(() => {
+    arrivalMessage &&
+      arrivalMessage.receiver_id !== stateContext.state.authUser?.email &&
+      setChat((prev) => [...prev, arrivalMessage]);
+  }, [arrivalMessage]);
 
   const onSubmitHandler: SubmitHandler<ICreateMessage> = async (values) => {
     try {
@@ -95,13 +106,12 @@ const page = () => {
         receiver_id: currentChat?.id!,
         message: values.message,
       });
+      socket.current?.emit("sendMessage", {
+        senderId: stateContext.state.authUser?.email,
+        receiverId: "yasir@g1.com", //stateContext.chatState.currentChat?.email
+        text: values.message,
+      });
       if (chat) {
-        socket.current?.emit("sendMessage", {
-          senderId: stateContext.state.authUser?.email,
-          receiverId: currentChat?.email!,
-          text: values.message,
-        });
-        console.log("send message");
         setChat((prev) => [...prev, response]);
       } else {
         toast.error("search or select user to start the chat", {
