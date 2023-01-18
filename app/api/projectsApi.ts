@@ -78,7 +78,7 @@ export const getAllProjectsFn = async (
     "Authorization"
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.get<IPaginatedResponse<ProjectList>>(
-    `project?page=${pageNo}&size=${recordSize}&search=${searchQuery}`
+    `project/admin?page=${pageNo}&size=${recordSize}&search=${searchQuery}`
   );
   return response.data;
 };
