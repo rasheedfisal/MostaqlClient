@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { object, string, TypeOf } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import FormInput2 from "../../../components/FormInput2";
 import SubmitButton from "../../../components/SubmitButton";
 import Cookies from "js-cookie";
+import useUpdateEffect from "../../../hooks/useUpdateEffect";
 
 const loginSchema = object({
   email: string()
@@ -77,7 +78,7 @@ const login = () => {
     formState: { isSubmitSuccessful },
   } = methods;
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     if (isSubmitSuccessful) {
       reset();
     }
@@ -117,12 +118,12 @@ const login = () => {
               </span>
             </label>
 
-            <a
-              href="forgot-password.html"
+            <Link
+              href="/forget"
               className="text-sm text-blue-600 hover:underline"
             >
               Forgot Password?
-            </a>
+            </Link>
           </div>
           <div>
             {/* <button
@@ -189,12 +190,12 @@ const login = () => {
       </a> */}
 
       {/* <!-- Register link --> */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
+      {/* <div className="text-sm text-gray-600 dark:text-gray-400">
         Don't have an account yet?{" "}
         <Link href="/register" className="text-blue-600 hover:underline">
           Register
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 };
