@@ -80,7 +80,7 @@ export default function RootLayout({
           href="../index.html"
           className="inline-block mb-6 text-3xl font-bold tracking-wider uppercase text-primary-dark dark:text-light"
         >
-          مستقل
+          Architect
         </a>
         <main>
           <ToastContainer />

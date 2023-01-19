@@ -100,7 +100,7 @@ const NavBar = ({
             href="/home"
             className="inline-block text-2xl pl-3 font-bold tracking-wider uppercase text-primary-dark dark:text-light"
           >
-            مستقل
+            Architect
           </Link>
         </div>
 

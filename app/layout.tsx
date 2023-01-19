@@ -16,7 +16,7 @@ export default function RootLayout({
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
-        <title>مستقل</title>
+        <title>Architect</title>
         <link
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;600;700;900&display=swap"
           rel="stylesheet"
