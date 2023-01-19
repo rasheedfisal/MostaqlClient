@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { FormEvent } from "react";
 import { object, string, TypeOf } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+// import { zodResolver } from "@hookform/resolvers/zod";
 
 const registerSchema = object({
   name: string().min(1, "Full name is required").max(100),
