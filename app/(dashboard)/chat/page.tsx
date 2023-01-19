@@ -58,11 +58,11 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
-    // socket.current = io("http://194.195.87.30:89", {
-    //   transports: ["websocket", "polling"],
-    //   autoConnect: false,
-    // }); //http://localhost:3002
-    socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
+    socket.current = io("http://194.195.87.30:89", {
+      transports: ["websocket", "polling"],
+      autoConnect: false,
+    }); //http://localhost:3002
+    // socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
     socket.current.on("getMessage", (data: sendMessage) => {
       const recevedMsg: IChat = {
         sender_id: data.senderId,
