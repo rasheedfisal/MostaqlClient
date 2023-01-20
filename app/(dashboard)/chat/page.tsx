@@ -713,7 +713,7 @@ const page = () => {
           <FormProvider {...methods}>
             <form noValidate onSubmit={methods.handleSubmit(onSubmitHandler)}>
               <div className="flex items-center justify-between w-full p-3 border-t border-gray-300">
-                <FormSearch label="Search" name="message" type="search" />
+                <FormSearch label="message..." name="message" type="text" />
                 <button type="submit">
                   {loadingMessage ? (
                     <svg
