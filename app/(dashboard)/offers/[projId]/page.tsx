@@ -94,6 +94,7 @@ const page = ({ params: { projId } }: PageProps) => {
                         subDays(new Date(), 0),
                         {
                           addSuffix: true,
+                          includeSeconds: true,
                         }
                       )}
                     </span>

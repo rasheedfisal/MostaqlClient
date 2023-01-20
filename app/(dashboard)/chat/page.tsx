@@ -12,12 +12,17 @@ import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSearch from "../../../components/FormSearch";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { parseISO } from "date-fns";
+import { formatDistance, subDays, format, parseISO } from "date-fns";
 import io, { Socket } from "socket.io-client";
 
 type sendMessage = {
   senderId: string;
   receiverId: string;
+  text: string;
+  time: Date;
+};
+type recieveMessage = {
+  senderId: string;
   text: string;
 };
 const createMessageSchema = object({
@@ -26,9 +31,7 @@ const createMessageSchema = object({
 export type ICreateMessage = TypeOf<typeof createMessageSchema>;
 const page = () => {
   const [currentChat, setCurrentChat] = useState<ISysUser | null>(null);
-  // const [loading, setLoading] = useState<boolean>(false);
-  // const [pageNo, setPage] = useState(1);
-  // const [hasMore, setHasMore] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState(false);
   const [chat, setChat] = useState<IChat[]>([]);
   const [arrivalMessage, setArrivalMessage] = useState<IChat | null>(null);
   const stateContext = useStateContext();
@@ -58,26 +61,21 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
-    socket.current = io("http://194.195.87.30:89", {
-      transports: ["websocket", "polling"],
-      autoConnect: false,
-    }); //http://localhost:3002
-    // socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
+    // socket.current = io("http://194.195.87.30:89", {
+    //   transports: ["websocket", "polling"],
+    //   autoConnect: false,
+    // }); //http://localhost:3002
+    socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
     socket.current.on("getMessage", (data: sendMessage) => {
       const recevedMsg: IChat = {
         sender_id: data.senderId,
         receiver_id: data.receiverId,
         message: data.text,
-        createdAt: new Date(),
+        createdAt: data.time,
       };
-      // setSendMessage({
-      //   sender_id: data.sender_id,
-      //   receiver_id: data.receiver_id,
-      //   text: Date.now().toString(),
-      // });
-
       setArrivalMessage(recevedMsg);
     });
+    socket.current?.emit("addUser", stateContext.state.authUser?.email);
   }, []);
   useUpdateEffect(() => {
     if (currentChat !== null) {
@@ -85,12 +83,12 @@ const page = () => {
     } else {
       setCurrentChat(stateContext.chatState.currentChat);
     }
-    socket.current?.emit("addUser", stateContext.chatState.currentChat?.email);
+    setChat([]);
   }, [stateContext.chatState.currentChat]);
 
   useUpdateEffect(() => {
     arrivalMessage &&
-      arrivalMessage.receiver_id !== stateContext.state.authUser?.email &&
+      arrivalMessage.receiver_id === stateContext.state.authUser?.email &&
       setChat((prev) => [...prev, arrivalMessage]);
   }, [arrivalMessage]);
 
@@ -102,14 +100,17 @@ const page = () => {
         });
         return;
       }
+      setLoadingMessage(true);
       const response = await createChatFn(token, {
         receiver_id: currentChat?.id!,
         message: values.message,
       });
+      setLoadingMessage(false);
       socket.current?.emit("sendMessage", {
         senderId: stateContext.state.authUser?.email,
-        receiverId: "yasir@g1.com", //stateContext.chatState.currentChat?.email
-        text: values.message,
+        receiverId: stateContext.chatState.currentChat?.email, //stateContext.chatState.currentChat?.email
+        text: response.message,
+        time: response.createdAt,
       });
       if (chat) {
         setChat((prev) => [...prev, response]);
@@ -119,6 +120,7 @@ const page = () => {
         });
       }
     } catch (error) {
+      setLoadingMessage(false);
       if ((error as any).response?.data?.msg) {
         toast.error((error as any).response?.data?.msg, {
           position: "top-right",
@@ -630,10 +632,20 @@ const page = () => {
                       className={`relative max-w-xl px-4 py-2 rounded shadow ${
                         uchat.receiver_id === currentChat?.id
                           ? "bg-primary-lighter"
-                          : "bg-info-lighter"
+                          : "bg-dark text-white dark:bg-darker"
                       }`}
                     >
                       <span className="block">{uchat.message}</span>
+                      <span className="block text-xs">
+                        {formatDistance(
+                          parseISO(uchat.createdAt.toString()),
+                          subDays(new Date(), 0),
+                          {
+                            addSuffix: true,
+                            includeSeconds: true,
+                          }
+                        )}
+                      </span>
                     </div>
                   </li>
                 ))}
@@ -703,14 +715,37 @@ const page = () => {
               <div className="flex items-center justify-between w-full p-3 border-t border-gray-300">
                 <FormSearch label="Search" name="message" type="search" />
                 <button type="submit">
-                  <svg
-                    className="w-5 h-5 text-gray-500 origin-center transform rotate-90"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                  </svg>
+                  {loadingMessage ? (
+                    <svg
+                      className="w-4 h-4 origin-center ml-1 animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25 w-3 h-3 text-gray-500"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-5 h-5 text-gray-500 origin-center transform rotate-90"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </form>
