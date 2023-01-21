@@ -12,8 +12,8 @@ import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSearch from "../../../components/FormSearch";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { formatDistance, subDays, format, parseISO } from "date-fns";
-import io, { Socket } from "socket.io-client";
+import { formatDistance, subDays, parseISO } from "date-fns";
+import io from "socket.io-client";
 
 type sendMessage = {
   senderId: string;
@@ -29,15 +29,16 @@ const createMessageSchema = object({
   message: string().min(1, "message is required"),
 });
 export type ICreateMessage = TypeOf<typeof createMessageSchema>;
+
+const skt = io("http://194.195.87.30:89");
+
 const page = () => {
   const [currentChat, setCurrentChat] = useState<ISysUser | null>(null);
   const [loadingMessage, setLoadingMessage] = useState(false);
   const [chat, setChat] = useState<IChat[]>([]);
-  const [arrivalMessage, setArrivalMessage] = useState<IChat | null>(null);
   const stateContext = useStateContext();
   const token = useAccessToken();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const socket = useRef<Socket>();
 
   const methods = useForm<ICreateMessage>({
     resolver: zodResolver(createMessageSchema),
@@ -55,28 +56,15 @@ const page = () => {
   }, [isSubmitSuccessful]);
 
   useUpdateEffect(() => {
+    skt.emit("addUser", stateContext.state.authUser?.email);
+  }, []);
+
+  useUpdateEffect(() => {
     if (scrollRef.current) {
       scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [chat]);
 
-  useUpdateEffect(() => {
-    // socket.current = io("http://194.195.87.30:89", {
-    //   transports: ["websocket", "polling"],
-    //   autoConnect: false,
-    // }); //http://localhost:3002
-    socket.current = io("http://194.195.87.30:89"); //http://localhost:3002
-    socket.current.on("getMessage", (data: sendMessage) => {
-      const recevedMsg: IChat = {
-        sender_id: data.senderId,
-        receiver_id: data.receiverId,
-        message: data.text,
-        createdAt: data.time,
-      };
-      setArrivalMessage(recevedMsg);
-    });
-    socket.current?.emit("addUser", stateContext.state.authUser?.email);
-  }, []);
   useUpdateEffect(() => {
     if (currentChat !== null) {
       setCurrentChat(stateContext.chatState.currentChat);
@@ -87,10 +75,18 @@ const page = () => {
   }, [stateContext.chatState.currentChat]);
 
   useUpdateEffect(() => {
-    arrivalMessage &&
-      arrivalMessage.receiver_id === stateContext.state.authUser?.email &&
-      setChat((prev) => [...prev, arrivalMessage]);
-  }, [arrivalMessage]);
+    skt.on("getMessage", (data: sendMessage) => {
+      const recevedMsg: IChat = {
+        sender_id: data.senderId,
+        receiver_id: data.receiverId,
+        message: data.text,
+        createdAt: data.time,
+      };
+      recevedMsg &&
+        recevedMsg.receiver_id === stateContext.state.authUser?.email &&
+        setChat((prev) => [...prev, recevedMsg]);
+    });
+  }, [skt]);
 
   const onSubmitHandler: SubmitHandler<ICreateMessage> = async (values) => {
     try {
@@ -106,7 +102,7 @@ const page = () => {
         message: values.message,
       });
       setLoadingMessage(false);
-      socket.current?.emit("sendMessage", {
+      skt.emit("sendMessage", {
         senderId: stateContext.state.authUser?.email,
         receiverId: stateContext.chatState.currentChat?.email, //stateContext.chatState.currentChat?.email
         text: response.message,
