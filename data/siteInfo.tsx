@@ -5,6 +5,7 @@ import {
   HandRaisedIcon,
   AdjustmentsVerticalIcon,
   QuestionMarkCircleIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/solid";
 
 interface ILinks {
@@ -43,18 +44,18 @@ export const links: ILinks[] = [
     open: false,
     active: false,
   },
-  {
-    title: "Questions",
-    icon: <QuestionMarkCircleIcon className="w-5 h-5" />,
-    links: [
-      {
-        name: "Manage",
-        path: "/questions",
-      },
-    ],
-    open: false,
-    active: false,
-  },
+  // {
+  //   title: "Questions",
+  //   icon: <QuestionMarkCircleIcon className="w-5 h-5" />,
+  //   links: [
+  //     {
+  //       name: "Manage",
+  //       path: "/questions",
+  //     },
+  //   ],
+  //   open: false,
+  //   active: false,
+  // },
   {
     title: "Support",
     icon: <HandRaisedIcon className="w-5 h-5" />,
@@ -68,8 +69,8 @@ export const links: ILinks[] = [
     active: false,
   },
   {
-    title: "Settings",
-    icon: <AdjustmentsVerticalIcon className="w-5 h-5" />,
+    title: "Configurations",
+    icon: <Cog6ToothIcon className="w-5 h-5" />,
     links: [
       {
         name: "Categories",
@@ -78,6 +79,34 @@ export const links: ILinks[] = [
       {
         name: "Price Ranges",
         path: "/prices",
+      },
+      {
+        name: "Min. Withdrawble Amount",
+        path: "/withdraw",
+      },
+      {
+        name: "Paypal Account",
+        path: "/paypal",
+      },
+    ],
+    open: false,
+    active: false,
+  },
+  {
+    title: "Site Settings",
+    icon: <AdjustmentsVerticalIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Questions",
+        path: "/questions",
+      },
+      {
+        name: "Contact Info",
+        path: "/contact",
+      },
+      {
+        name: "Privacy Policy",
+        path: "/privacy",
       },
     ],
     open: false,
