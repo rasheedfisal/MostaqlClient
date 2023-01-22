@@ -25,7 +25,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "data/siteInfo.tsx"
+    "data/siteInfo.tsx",
+    "hooks/useIntersectionObserver.js"
   ],
   "exclude": ["node_modules"]
 }

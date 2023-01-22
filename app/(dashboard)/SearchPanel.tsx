@@ -1,24 +1,14 @@
 "use client";
-import React, {
-  MouseEventHandler,
-  RefObject,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import React, { MouseEventHandler, RefObject, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import useAccessToken from "../../hooks/useAccessToken";
-import {
-  useInfiniteQuery,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllChatUsersFn } from "../api/chatApi";
 import { toast } from "react-toastify";
 import { ISysUser } from "../../typings";
 import { useStateContext } from "../../context/AppConext";
 import useDebounce from "../../hooks/useDebounce";
-import useUpdateEffect from "../../hooks/useUpdateEffect";
+import useIntersectionObserver from "../../hooks/useIntersectionObserver";
 
 type SearchPanelProps = {
   SearchPanelRef: RefObject<HTMLInputElement>;
@@ -39,33 +29,19 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     fetchNextPage, //function
     hasNextPage, // boolean
     isFetchingNextPage, // boolean
-    isFetching,
     data: items,
     status,
     isLoading,
+    isSuccess,
     error,
   } = useInfiniteQuery(
-    ["chatusers", debouncedSearchQuery],
+    [debouncedSearchQuery],
     ({ pageParam = 1 }) =>
       getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
     {
-      // select: (data) => data,
       retry: 1,
-      // keepPreviousData: true,
       getNextPageParam: (lastPage, allPages) => {
         return lastPage.length ? allPages.length + 1 : undefined;
-      },
-      onSuccess: (e) => {
-        // setHasNextPage(e.currentPage < e.totalPages);
-        // data?.pages.map((pg) => {
-        //   setSearchUser((prev) => Array.from(new Set([...prev, ...pg])));
-        // });
-        // if (e?.currentPage) {
-        //   setPageNumber(e.currentPage);
-        // }
-        // if (e?.totalPages) {
-        //   setPages(e.totalPages);
-        // }
       },
       onError: (error) => {
         if ((error as any).response?.data?.msg) {
@@ -76,42 +52,13 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
       },
     }
   );
+  const lastUserRef = useRef<HTMLDivElement>(null);
 
-  useUpdateEffect(() => {
-    queryClient.invalidateQueries(["chatusers", debouncedSearchQuery]);
-  }, [debouncedSearchQuery]);
-
-  // useUpdateEffect(() => {
-  //   if (
-  //     !isPreviousData &&
-  //     items?.results.length !== undefined &&
-  //     items?.results.length > 0 &&
-  //     hasNextPage
-  //   ) {
-  //     queryClient.prefetchQuery(
-  //       ["chatusers", pageNumber, debouncedSearchQuery],
-  //       () => getAllChatUsersFn(token, pageNumber, debouncedSearchQuery)
-  //     );
-  //   }
-  // }, [items, pageNumber, queryClient]);
-
-  const intObserver = useRef<IntersectionObserver | null>(null);
-  const lastUserRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (isLoading) return;
-
-      if (intObserver.current) intObserver.current.disconnect();
-
-      intObserver.current = new IntersectionObserver((user) => {
-        if (user[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      if (node) intObserver.current.observe(node);
-    },
-    [isFetchingNextPage, fetchNextPage, hasNextPage]
-  );
+  useIntersectionObserver({
+    target: lastUserRef,
+    onIntersect: fetchNextPage,
+    enabled: hasNextPage,
+  });
   if (status === "error")
     return <p className="center">Error: {(error as any).response.data.msg}</p>;
 
@@ -121,17 +68,12 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     }
   };
   const setCurrentChatUser = (user: ISysUser): void => {
-    // console.log(user);
     stateContext.chatDispatch({
       type: "SET_Current_Chat",
       payload: user,
       setChat: true,
     });
   };
-
-  // if (isLoading) {
-  //   return <p className="center">Loading...</p>;
-  // }
 
   const content = items?.pages.map((pg) => {
     return pg.map((chatuser, i) => {
@@ -245,19 +187,20 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
           <h3 className="py-2 text-sm font-semibold text-gray-600 dark:text-light">
             Users
           </h3>
-          {isFetching ? (
-            <p className="center">Loading...</p>
-          ) : (
-            <>
-              {content}
-              <div ref={lastUserRef} />
-              {isFetchingNextPage && (
-                <p className="center">Loading More Users...</p>
-              )}
-              <p className="center">
-                <a href="#top">No More Users</a>
-              </p>
-            </>
+          {isLoading && <p className="center">Loading...</p>}
+
+          {isSuccess && content}
+
+          <div ref={lastUserRef} className={`${!hasNextPage ? "hidden" : ""}`}>
+            {isFetchingNextPage && (
+              <p className="center">Loading More Users...</p>
+            )}
+          </div>
+
+          {!hasNextPage && !isLoading && (
+            <div className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+              No More Users
+            </div>
           )}
         </div>
       </div>
