@@ -129,7 +129,6 @@ const page = () => {
     fetchPreviousPage, //function
     hasPreviousPage, // boolean
     isFetchingPreviousPage, // boolean
-    data,
     status,
     error,
   } = useInfiniteQuery(
@@ -159,11 +158,10 @@ const page = () => {
         });
       },
       onError: (error) => {
-        if ((error as any).response?.data?.msg?.message) {
-          // toast.error((error as any).response?.data?.msg?.message, {
-          //   position: "top-right",
-          // });
-          console.log((error as any).response?.data?.msg?.message);
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
+            position: "top-right",
+          });
         }
       },
     }

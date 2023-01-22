@@ -26,7 +26,7 @@ export const createPriceFn = async (
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
-  const response = await privateAuthApi.post<ICategory>(`pricerange`, price);
+  const response = await privateAuthApi.post<IPriceRange>(`pricerange`, price);
   return response.data;
 };
 
@@ -42,7 +42,7 @@ export const updatePriceFn = async ({
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
-  const response = await privateAuthApi.put<ICategory>(
+  const response = await privateAuthApi.put<IPriceRange>(
     `pricerange/${id}`,
     price
   );

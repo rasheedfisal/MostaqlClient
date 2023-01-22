@@ -12,12 +12,16 @@ import { privateAuthApi } from "./axios";
 
 type chatUser = Omit<ISysUser, "Role" | "phone">;
 
-export const getAllChatUsersFn = async (accessToken: string | undefined) => {
+export const getAllChatUsersFn = async (
+  accessToken: string | undefined,
+  pageNo: number,
+  searchTerm: string
+) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.post<IPaginatedResponse<ISysUser>>(
-    "users/userschat?page=1&size=10"
+    `users/userschat?page=${pageNo}&size=10&query=${searchTerm}`
   );
   return response.data;
 };

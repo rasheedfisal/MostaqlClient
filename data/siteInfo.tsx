@@ -4,8 +4,8 @@ import {
   CubeTransparentIcon,
   HandRaisedIcon,
   AdjustmentsVerticalIcon,
-  QuestionMarkCircleIcon,
   Cog6ToothIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/solid";
 
 interface ILinks {
@@ -44,18 +44,22 @@ export const links: ILinks[] = [
     open: false,
     active: false,
   },
-  // {
-  //   title: "Questions",
-  //   icon: <QuestionMarkCircleIcon className="w-5 h-5" />,
-  //   links: [
-  //     {
-  //       name: "Manage",
-  //       path: "/questions",
-  //     },
-  //   ],
-  //   open: false,
-  //   active: false,
-  // },
+  {
+    title: "Payments",
+    icon: <CurrencyDollarIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Account Feed Request",
+        path: "/feed",
+      },
+      {
+        name: "Withdrawal Request",
+        path: "/withdrawrequest",
+      },
+    ],
+    open: false,
+    active: false,
+  },
   {
     title: "Support",
     icon: <HandRaisedIcon className="w-5 h-5" />,
@@ -79,6 +83,10 @@ export const links: ILinks[] = [
       {
         name: "Price Ranges",
         path: "/prices",
+      },
+      {
+        name: "Commission Rate",
+        path: "/rate",
       },
       {
         name: "Min. Withdrawble Amount",

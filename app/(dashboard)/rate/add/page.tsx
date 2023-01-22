@@ -15,34 +15,30 @@ import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 import { createPriceFn } from "../../../api/pricesApi";
+import { createRateFn } from "../../../api/commissionrateApi";
+import FormCheckbox from "../../../../components/FormCheckbox";
 
-const createUpdatePriceSchema = object({
-  range_name: string().min(1, "Name is required"),
-  range_from: z
+const createUpdateRateSchema = object({
+  ratepercent: z
     .string()
     .min(1)
     .refine((val) => !Number.isNaN(parseInt(val, 10)), {
       message: "Expected number, received a string",
     }),
-  range_to: z
-    .string()
-    .min(1)
-    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
-      message: "Expected number, received a string",
-    }),
+  iscurrent: z.boolean(),
 });
 
-export type ICreateUpdatePrice = TypeOf<typeof createUpdatePriceSchema>;
+export type ICreateRate = TypeOf<typeof createUpdateRateSchema>;
 const page = () => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createPrice } = useMutation(
-    (price: ICreateUpdatePrice) => createPriceFn(price, token),
+  const { isLoading, mutate: createRate } = useMutation(
+    (rate: ICreateRate) => createRateFn(rate, token),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["prices"]);
-        toast.success("Price Range created successfully");
+        queryClient.invalidateQueries(["rates"]);
+        toast.success("Rate created successfully");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -54,8 +50,8 @@ const page = () => {
     }
   );
 
-  const methods = useForm<ICreateUpdatePrice>({
-    resolver: zodResolver(createUpdatePriceSchema),
+  const methods = useForm<ICreateRate>({
+    resolver: zodResolver(createUpdateRateSchema),
   });
   const {
     formState: { isSubmitSuccessful },
@@ -68,17 +64,17 @@ const page = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  const onSubmitHandler: SubmitHandler<ICreateUpdatePrice> = (values) => {
-    createPrice(values);
+  const onSubmitHandler: SubmitHandler<ICreateRate> = (values) => {
+    createRate(values);
   };
 
   return (
     <>
       {/* <!-- Content header --> */}
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
-        <h1 className="text-2xl font-semibold">Add Price Range</h1>
+        <h1 className="text-2xl font-semibold">Add Commission Rate</h1>
         <Link
-          href="/prices"
+          href="/rate"
           className="px-4 py-2 flex items-center text-sm text-white rounded-md bg-primary hover:bg-primary-dark focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark"
         >
           <ChevronDoubleLeftIcon className="w-5 h-5" />
@@ -95,11 +91,10 @@ const page = () => {
               onSubmit={methods.handleSubmit(onSubmitHandler)}
             >
               <div className="grid grid-cols-1">
-                <FormInput label="Name" type="text" name="range_name" />
+                <FormInput label="Rate" type="text" name="ratepercent" />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <FormInput label="Range From" type="text" name="range_from" />
-                <FormInput label="Range To" type="text" name="range_to" />
+              <div className="grid grid-cols-1">
+                <FormCheckbox label="Current" name="iscurrent" />
               </div>
               <div className="flex">
                 <SubmitButton
