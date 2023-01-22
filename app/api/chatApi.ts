@@ -23,7 +23,7 @@ export const getAllChatUsersFn = async (
   const response = await privateAuthApi.post<IPaginatedResponse<ISysUser>>(
     `users/userschat?page=${pageNo}&size=10&query=${searchTerm}`
   );
-  return response.data;
+  return response.data.results;
 };
 
 export interface IChat {

@@ -32,40 +32,40 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
   const [pageNumber, setPageNumber] = useState(1);
   const [pages, setPages] = useState(0);
   const queryClient = useQueryClient();
-  const debouncedSearchQuery = useDebounce(searchQuery, 600);
-  const [hasNextPage, setHasNextPage] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 700);
+  // const [hasNextPage, setHasNextPage] = useState(false);
 
   const {
-    // fetchNextPage, //function
-    // hasNextPage, // boolean
-    // isFetchingNextPage, // boolean
+    fetchNextPage, //function
+    hasNextPage, // boolean
+    isFetchingNextPage, // boolean
     isFetching,
-    isPreviousData,
     data: items,
-    // status,
+    status,
     isLoading,
     error,
-  } = useQuery(
-    ["chatusers", pageNumber, debouncedSearchQuery],
-    () => getAllChatUsersFn(token, pageNumber, debouncedSearchQuery),
+  } = useInfiniteQuery(
+    ["chatusers", debouncedSearchQuery],
+    ({ pageParam = 1 }) =>
+      getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
     {
-      select: (data) => data,
+      // select: (data) => data,
       retry: 1,
-      keepPreviousData: true,
-      // getNextPageParam: (lastPage, allPages) => {
-      //   return lastPage.length ? allPages.length + 1 : undefined;
-      // },
+      // keepPreviousData: true,
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.length ? allPages.length + 1 : undefined;
+      },
       onSuccess: (e) => {
-        setHasNextPage(e.currentPage < e.totalPages);
+        // setHasNextPage(e.currentPage < e.totalPages);
         // data?.pages.map((pg) => {
         //   setSearchUser((prev) => Array.from(new Set([...prev, ...pg])));
         // });
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
+        // if (e?.currentPage) {
+        //   setPageNumber(e.currentPage);
+        // }
+        // if (e?.totalPages) {
+        //   setPages(e.totalPages);
+        // }
       },
       onError: (error) => {
         if ((error as any).response?.data?.msg) {
@@ -78,30 +78,22 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
   );
 
   useUpdateEffect(() => {
-    if (
-      !isPreviousData &&
-      items?.results.length !== undefined &&
-      items?.results.length > 0
-    ) {
-      queryClient.prefetchQuery(["chatusers", 1, debouncedSearchQuery], () =>
-        getAllChatUsersFn(token, 1, debouncedSearchQuery)
-      );
-    }
-  }, [items, debouncedSearchQuery, queryClient]);
+    queryClient.invalidateQueries(["chatusers", debouncedSearchQuery]);
+  }, [debouncedSearchQuery]);
 
-  useUpdateEffect(() => {
-    if (
-      !isPreviousData &&
-      items?.results.length !== undefined &&
-      items?.results.length > 0 &&
-      hasNextPage
-    ) {
-      queryClient.prefetchQuery(
-        ["chatusers", pageNumber, debouncedSearchQuery],
-        () => getAllChatUsersFn(token, pageNumber, debouncedSearchQuery)
-      );
-    }
-  }, [items, pageNumber, queryClient]);
+  // useUpdateEffect(() => {
+  //   if (
+  //     !isPreviousData &&
+  //     items?.results.length !== undefined &&
+  //     items?.results.length > 0 &&
+  //     hasNextPage
+  //   ) {
+  //     queryClient.prefetchQuery(
+  //       ["chatusers", pageNumber, debouncedSearchQuery],
+  //       () => getAllChatUsersFn(token, pageNumber, debouncedSearchQuery)
+  //     );
+  //   }
+  // }, [items, pageNumber, queryClient]);
 
   const intObserver = useRef<IntersectionObserver | null>(null);
   const lastUserRef = useCallback(
@@ -112,19 +104,16 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
 
       intObserver.current = new IntersectionObserver((user) => {
         if (user[0].isIntersecting && hasNextPage) {
-          setPageNumber((prev) => prev + 1);
-          // queryClient.prefetchQuery(["chatusers", debouncedSearchQuery], () =>
-          //   getAllChatUsersFn(token, pageNumber, debouncedSearchQuery)
-          // );
+          fetchNextPage();
         }
       });
 
       if (node) intObserver.current.observe(node);
     },
-    [isLoading, hasNextPage]
+    [isFetchingNextPage, fetchNextPage, hasNextPage]
   );
-  // if (status === "error")
-  //   return <p className="center">Error: {(error as any).response.data.msg}</p>;
+  if (status === "error")
+    return <p className="center">Error: {(error as any).response.data.msg}</p>;
 
   const handleSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "32") {
@@ -140,16 +129,15 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     });
   };
 
-  if (isLoading) {
-    return <p className="center">Loading...</p>;
-  }
+  // if (isLoading) {
+  //   return <p className="center">Loading...</p>;
+  // }
 
-  const content = items?.results.map((chatuser, i) => {
-    if (items.results.length === i + 1) {
+  const content = items?.pages.map((pg) => {
+    return pg.map((chatuser, i) => {
       return (
         <span
           key={chatuser.id}
-          ref={lastUserRef}
           onClick={() => setCurrentChatUser(chatuser)}
           className="flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
         >
@@ -166,42 +154,15 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
               {chatuser.fullname}
             </h4>
             {/* <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-        Lorem ipsum dolor, sit amet consectetur.
-      </p> */}
+      Lorem ipsum dolor, sit amet consectetur.
+    </p> */}
             <span className="text-sm font-normal  dark:text-primary-light">
               {chatuser.Role?.role_name}
             </span>
           </div>
         </span>
       );
-    }
-    return (
-      <span
-        key={chatuser.id}
-        onClick={() => setCurrentChatUser(chatuser)}
-        className="flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
-      >
-        <div className="flex-shrink-0">
-          <img
-            className="w-10 h-10 rounded-lg"
-            src={chatuser.imgPath ?? "/noImg.jpg"}
-            alt="avatar"
-            loading="lazy"
-          />
-        </div>
-        <div className="flex-1 max-w-xs overflow-hidden">
-          <h4 className="text-sm font-semibold  dark:text-light">
-            {chatuser.fullname}
-          </h4>
-          {/* <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-    Lorem ipsum dolor, sit amet consectetur.
-  </p> */}
-          <span className="text-sm font-normal  dark:text-primary-light">
-            {chatuser.Role?.role_name}
-          </span>
-        </div>
-      </span>
-    );
+    });
   });
 
   return (
@@ -289,7 +250,10 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
           ) : (
             <>
               {content}
-              {isLoading && <p className="center">Loading More Users...</p>}
+              <div ref={lastUserRef} />
+              {isFetchingNextPage && (
+                <p className="center">Loading More Users...</p>
+              )}
               <p className="center">
                 <a href="#top">No More Users</a>
               </p>
