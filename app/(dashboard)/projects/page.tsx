@@ -267,7 +267,7 @@ const page = () => {
                             <img
                               className="object-cover w-full h-full rounded-full"
                               src={
-                                project.SubCategory.Category.cat_img ??
+                                project.SubCategory!.Category.cat_img ??
                                 "noImg.jpg"
                               }
                               alt="avatar"
@@ -280,20 +280,20 @@ const page = () => {
                           </div>
                           <div>
                             <p className="font-semibold text-xs">
-                              {project.SubCategory.Category.cat_name}
+                              {project.SubCategory!.Category.cat_name}
                             </p>
                             <p className="font-semibold text-gray-400 text-xs">
-                              {project.SubCategory.name}
+                              {project.SubCategory!.name}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {project.PriceRange.range_name}
+                        {project.PriceRange!.range_name}
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <StatusBadge
-                          statusName={project.ProjStatus.stat_name}
+                          statusName={project.ProjStatus!.stat_name}
                         />
                       </td>
                     </tr>

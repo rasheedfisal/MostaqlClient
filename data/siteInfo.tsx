@@ -40,6 +40,10 @@ export const links: ILinks[] = [
         name: "Manage",
         path: "/projects",
       },
+      {
+        name: "Cancellation Requests",
+        path: "/projectcancellation",
+      },
     ],
     open: false,
     active: false,
