@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import {
   getAllAccountFeedRequestsFn,
   approveRejectAccountFeedRequestFn,
+  transferAccountFeedMoneyFn,
 } from "../../api/paymentApi";
 import useAccessToken from "../../../hooks/useAccessToken";
 import TableLoader from "../../../components/TableLoader";
@@ -91,6 +92,31 @@ const page = () => {
     }
   );
 
+  const { isLoading: isTransfering, mutate: transferMoney } = useMutation(
+    ({
+      id,
+      accessToken,
+      accepted,
+    }: {
+      id: string;
+      accessToken: string;
+      accepted: boolean;
+    }) => transferAccountFeedMoneyFn({ id, accessToken, accepted }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["feedrequests"]);
+        toast.success("Money Transfered successfully");
+      },
+      onError: (error: any) => {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
+            position: "top-right",
+          });
+        }
+      },
+    }
+  );
+
   const handleApproveOrReject = (id: string, accepted: boolean) => {
     if (
       confirm(
@@ -100,6 +126,15 @@ const page = () => {
       )
     ) {
       approveorreject({
+        id: id,
+        accessToken: token,
+        accepted,
+      });
+    }
+  };
+  const handleTransfer = (id: string, accepted: boolean) => {
+    if (confirm(`are you sure you want to transfer this amount?`)) {
+      transferMoney({
         id: id,
         accessToken: token,
         accepted,
@@ -136,12 +171,15 @@ const page = () => {
           </div>
           <div className="block w-full overflow-x-auto">
             <div className="relative">
-              {(isFetching || isAccepting) && <TableLoader />}
+              {(isFetching || isAccepting || isTransfering) && <TableLoader />}
               <table className="items-center bg-transparent w-full border-collapse ">
                 <thead>
                   <tr>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
                       Name
+                    </th>
+                    <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                      Account
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
                       Amount
@@ -188,6 +226,11 @@ const page = () => {
                         </div>
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
+                        <span className="font-semibold">
+                          Credit: {item.User.wallet?.credit ?? 0}
+                        </span>
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         {item.amount}
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
@@ -208,22 +251,35 @@ const page = () => {
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
-                          <div
-                            onClick={() =>
-                              handleApproveOrReject(item.id!, true)
-                            }
-                            className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
-                          >
-                            Approve
-                          </div>
-                          <div
-                            onClick={() =>
-                              handleApproveOrReject(item.id!, false)
-                            }
-                            className="bg-red-600 hover:bg-red-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
-                          >
-                            Reject
-                          </div>
+                          {item.accepted ? (
+                            !item.is_transfered && (
+                              <div
+                                onClick={() => handleTransfer(item.id!, true)}
+                                className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
+                              >
+                                Withdraw Money
+                              </div>
+                            )
+                          ) : (
+                            <div
+                              onClick={() =>
+                                handleApproveOrReject(item.id!, true)
+                              }
+                              className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
+                            >
+                              Approve
+                            </div>
+                          )}
+                          {!item.is_transfered && (
+                            <div
+                              onClick={() =>
+                                handleApproveOrReject(item.id!, false)
+                              }
+                              className="bg-red-600 hover:bg-red-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
+                            >
+                              Reject
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>

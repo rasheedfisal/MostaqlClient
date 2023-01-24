@@ -60,6 +60,10 @@ export const links: ILinks[] = [
         name: "Withdrawal Request",
         path: "/withdrawrequest",
       },
+      {
+        name: "Completed Projects",
+        path: "/projectcompleted",
+      },
     ],
     open: false,
     active: false,

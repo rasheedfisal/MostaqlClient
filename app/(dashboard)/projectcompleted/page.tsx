@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
-  getAllWithdrawRequestsFn,
-  approveRejectWithdrawRequestFn,
-  transferWithdrawalMoneyFn,
+  getAllCompletedProjectRequest,
+  approveCompleteProjectRequestFn,
+  transferCompletedProjectMoneyFn,
 } from "../../api/paymentApi";
 import useAccessToken from "../../../hooks/useAccessToken";
 import TableLoader from "../../../components/TableLoader";
@@ -27,8 +28,8 @@ const page = () => {
     isPreviousData,
     data: items,
   } = useQuery(
-    ["withdrawrequests", pageNumber, pageSize],
-    () => getAllWithdrawRequestsFn(token, pageNumber, pageSize),
+    ["completedprojects", pageNumber, pageSize],
+    () => getAllCompletedProjectRequest(token, pageNumber, pageSize),
     {
       select: (data) => data,
       retry: 1,
@@ -61,8 +62,8 @@ const page = () => {
       items?.results.length > 0
     ) {
       queryClient.prefetchQuery(
-        ["withdrawrequests", pageNumber, pageSize],
-        () => getAllWithdrawRequestsFn(token, pageNumber, pageSize)
+        ["completedprojects", pageNumber, pageSize],
+        () => getAllCompletedProjectRequest(token, pageNumber, pageSize)
       );
     }
   }, [items, pageNumber, pageSize, isPreviousData, queryClient]);
@@ -71,15 +72,15 @@ const page = () => {
     ({
       id,
       accessToken,
-      accepted,
+      offerId,
     }: {
       id: string;
       accessToken: string;
-      accepted: boolean;
-    }) => approveRejectWithdrawRequestFn({ id, accessToken, accepted }),
+      offerId: string;
+    }) => approveCompleteProjectRequestFn({ id, accessToken, offerId }),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["withdrawrequests"]);
+        queryClient.invalidateQueries(["completedprojects"]);
         toast.success("Status Changed successfully");
       },
       onError: (error: any) => {
@@ -91,20 +92,21 @@ const page = () => {
       },
     }
   );
+
   const { isLoading: isTransfering, mutate: transferMoney } = useMutation(
     ({
       id,
       accessToken,
-      accepted,
+      offerId,
     }: {
       id: string;
       accessToken: string;
-      accepted: boolean;
-    }) => transferWithdrawalMoneyFn({ id, accessToken, accepted }),
+      offerId: string;
+    }) => transferCompletedProjectMoneyFn({ id, accessToken, offerId }),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["withdrawrequests"]);
-        toast.success("Money Withdrawn successfully");
+        queryClient.invalidateQueries(["completedprojects"]);
+        toast.success("Money Transfered successfully");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -116,28 +118,21 @@ const page = () => {
     }
   );
 
-  const handleApproveOrReject = (id: string, accepted: boolean) => {
-    if (
-      confirm(
-        `are you sure you want to ${
-          accepted ? "approve" : "reject"
-        } this request?`
-      )
-    ) {
+  const handleApproveOrReject = (id: string, offerId: string) => {
+    if (confirm(`are you sure you want to approve this request?`)) {
       approveorreject({
         id: id,
         accessToken: token,
-        accepted,
+        offerId,
       });
     }
   };
-
-  const handleTransfer = (id: string, accepted: boolean) => {
-    if (confirm(`are you sure you want to withdraw this amount?`)) {
+  const handleTransfer = (id: string, offerId: string) => {
+    if (confirm(`are you sure you want to transfer this amount?`)) {
       transferMoney({
         id: id,
         accessToken: token,
-        accepted,
+        offerId,
       });
     }
   };
@@ -150,7 +145,9 @@ const page = () => {
     <>
       {/* <!-- Content header --> */}
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
-        <h1 className="text-2xl font-semibold">Manage Withdrawal Requests</h1>
+        <h1 className="text-2xl font-semibold">
+          Manage Completed Project Requests
+        </h1>
       </div>
       <div className="grid grid-cols-1 p-4">
         <div className="w-full px-4 py-6 space-y-6 bg-white rounded-md dark:bg-darker">
@@ -176,19 +173,16 @@ const page = () => {
                 <thead>
                   <tr>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Name
+                      Project
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Account
+                      Owner
+                    </th>
+                    <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                      Client
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
                       Amount
-                    </th>
-                    <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Type
-                    </th>
-                    <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      attachment
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
                       Status
@@ -202,13 +196,18 @@ const page = () => {
                   {items?.results.map((item) => (
                     <tr key={item.id}>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left  ">
+                        {item.ownerProject.proj_title}
+                      </td>
+                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex items-center text-sm">
                           <div className="relative w-8 h-8 mr-3 rounded-full md:block">
                             <img
                               className="object-cover w-full h-full rounded-full"
                               src={
-                                item.User.imgPath?.replace("\\", "/") ??
-                                "noImg.jpg"
+                                item.ownerProject.owner.avatar?.replace(
+                                  "\\",
+                                  "/"
+                                ) ?? "noImg.jpg"
                               }
                               alt="avatar"
                               loading="lazy"
@@ -219,75 +218,73 @@ const page = () => {
                             ></div>
                           </div>
                           <div>
-                            <p className="font-semibold">
-                              {item.User.fullname}
+                            <p className="text-sm">
+                              {item.ownerProject.owner.fullname}
                             </p>
-                            <p className="text-xs">
-                              {item.User.Role?.role_name}
+                            <p className="text-sm">
+                              Credit:{" "}
+                              {item.ownerProject.owner.wallet?.credit ?? 0}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        <span className="font-semibold">
-                          Credit: {item.User.wallet?.credit ?? 0}
-                        </span>
-                      </td>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        {item.amount}
-                      </td>
-                      <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        {item.type === "paypal" ? (
-                          <>
-                            <span className="font-semibold block text-primary">
-                              Paypal
-                            </span>
-                            <span className="block">
-                              Email: {item.paypal[0].email}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="font-semibold block text-primary">
-                              Credit Card
-                            </span>
-                            <span className="block">
-                              Name: {item.creditcard[0].name}
-                            </span>
-                            <span className="block">
-                              Card Number: {item.creditcard[0].card_number}
-                            </span>
-                            <span className="block">
-                              Expiration: {item.creditcard[0].expiration}
-                            </span>
-                            <span className="block">
-                              Security Code: {item.creditcard[0].security_code}
-                            </span>
-                          </>
-                        )}
+                        <div className="flex items-center text-sm">
+                          <div className="relative w-8 h-8 mr-3 rounded-full md:block">
+                            <img
+                              className="object-cover w-full h-full rounded-full"
+                              src={
+                                item.winning_offer.client.avatar?.replace(
+                                  "\\",
+                                  "/"
+                                ) ?? "noImg.jpg"
+                              }
+                              alt="avatar"
+                              loading="lazy"
+                            />
+                            <div
+                              className="absolute inset-0 rounded-full shadow-inner"
+                              aria-hidden="true"
+                            ></div>
+                          </div>
+                          <div>
+                            <p className="text-sm">
+                              {item.winning_offer.client.fullname}
+                            </p>
+                            <p className="text-sm">
+                              Credit:{" "}
+                              {item.winning_offer.client.wallet?.credit ?? 0}
+                            </p>
+                          </div>
+                        </div>
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        {item.attachment ? (
-                          <a
-                            href={item.attachment}
-                            className="underline text-blue-700 text-sm cursor-pointer"
-                            target="_blank"
-                          >
-                            view
-                          </a>
-                        ) : (
-                          "N/A"
-                        )}
+                        <span className="block">
+                          Amount: {item.winning_offer.price}
+                        </span>
+                        <span className="block">
+                          After Commission:{" "}
+                          {Math.round(
+                            (item.winning_offer.price *
+                              item.winning_offer.commissionRate.ratepercent) /
+                              100
+                          )}
+                        </span>
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        <RequestStatusBadge accept={item.accepted} />
+                        <RequestStatusBadge accept={item.approved} />
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
-                          {item.accepted ? (
+                          {item.approved ? (
                             !item.is_transfered && (
                               <div
-                                onClick={() => handleTransfer(item.id!, true)}
+                                onClick={() =>
+                                  handleTransfer(
+                                    item.ownerProject.id!,
+                                    item.winning_offer.id
+                                  )
+                                }
                                 className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
                               >
                                 Transfer Money
@@ -296,21 +293,14 @@ const page = () => {
                           ) : (
                             <div
                               onClick={() =>
-                                handleApproveOrReject(item.id!, true)
+                                handleApproveOrReject(
+                                  item.ownerProject.id!,
+                                  item.winning_offer.id
+                                )
                               }
                               className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
                             >
                               Approve
-                            </div>
-                          )}
-                          {!item.is_transfered && (
-                            <div
-                              onClick={() =>
-                                handleApproveOrReject(item.id!, false)
-                              }
-                              className="bg-red-600 hover:bg-red-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
-                            >
-                              Reject
                             </div>
                           )}
                         </div>

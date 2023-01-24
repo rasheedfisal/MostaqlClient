@@ -1,4 +1,9 @@
-import { GenericResponse, IPaginatedResponse, ISysUser } from "../../typings";
+import {
+  GenericResponse,
+  IPaginatedResponse,
+  ISysUser,
+  IWallet,
+} from "../../typings";
 import { privateAuthApi } from "./axios";
 
 interface IFeed {
@@ -6,6 +11,7 @@ interface IFeed {
   amount: number;
   attachment: string;
   accepted: boolean | null;
+  is_transfered: boolean;
   createdAt: Date;
   User: ISysUser;
 }
@@ -14,6 +20,7 @@ interface IWithdraw {
   amount: number;
   attachment: string;
   accepted: boolean | null;
+  is_transfered: boolean;
   type: string;
   createdAt: Date;
   User: ISysUser;
@@ -29,6 +36,39 @@ interface ICreditCard {
   card_number: string;
   expiration: string;
   security_code: string;
+}
+
+interface ICompletedProject {
+  id: string;
+  approved: boolean | null;
+  is_transfered: boolean;
+  createdAt: Date;
+  ownerProject: {
+    id: string;
+    proj_title: string;
+    proj_period: number;
+    owner: {
+      id: string;
+      email: string;
+      fullname: string;
+      avatar: string;
+      wallet: IWallet;
+    };
+  };
+  winning_offer: {
+    id: string;
+    price: number;
+    client: {
+      id: string;
+      email: string;
+      fullname: string;
+      avatar: string;
+      wallet: IWallet;
+    };
+    commissionRate: {
+      ratepercent: number;
+    };
+  };
 }
 
 export const getAllAccountFeedRequestsFn = async (
@@ -63,6 +103,24 @@ export const approveRejectAccountFeedRequestFn = async ({
   );
   return response.data;
 };
+export const transferAccountFeedMoneyFn = async ({
+  id,
+  accessToken,
+  accepted,
+}: {
+  id: string;
+  accessToken: string;
+  accepted: boolean;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<GenericResponse>(
+    `payments/feed/transfer/${id}`,
+    { accepted }
+  );
+  return response.data;
+};
 
 export const getAllWithdrawRequestsFn = async (
   accessToken: string | undefined,
@@ -93,6 +151,76 @@ export const approveRejectWithdrawRequestFn = async ({
   const response = await privateAuthApi.put<GenericResponse>(
     `payments/withdraw/${id}`,
     { accepted }
+  );
+  return response.data;
+};
+
+export const transferWithdrawalMoneyFn = async ({
+  id,
+  accessToken,
+  accepted,
+}: {
+  id: string;
+  accessToken: string;
+  accepted: boolean;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<GenericResponse>(
+    `payments/withdraw/transfer/${id}`,
+    { accepted }
+  );
+  return response.data;
+};
+
+export const getAllCompletedProjectRequest = async (
+  accessToken: string | undefined,
+  pageNo: number,
+  recordSize: number
+) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.get<
+    IPaginatedResponse<ICompletedProject>
+  >(`project/request/completed?page=${pageNo}&size=${recordSize}`);
+  return response.data;
+};
+
+export const approveCompleteProjectRequestFn = async ({
+  id,
+  accessToken,
+  offerId,
+}: {
+  id: string;
+  accessToken: string;
+  offerId: string;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<GenericResponse>(
+    `project/completed/${id}`,
+    { offer_id: offerId }
+  );
+  return response.data;
+};
+export const transferCompletedProjectMoneyFn = async ({
+  id,
+  accessToken,
+  offerId,
+}: {
+  id: string;
+  accessToken: string;
+  offerId: string;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<GenericResponse>(
+    `project/completed/transfer/${id}`,
+    { offer_id: offerId }
   );
   return response.data;
 };

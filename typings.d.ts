@@ -14,6 +14,10 @@ export interface ISysUser {
   is_active: boolean;
   Role?: IRole;
   CreatedAt?: Date;
+  wallet?: IWallet;
+}
+export interface IWallet {
+  credit: number;
 }
 export interface IRole {
   id: string;
