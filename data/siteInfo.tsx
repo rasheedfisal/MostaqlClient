@@ -76,6 +76,10 @@ export const links: ILinks[] = [
         name: "Chat Engin",
         path: "/chat",
       },
+      {
+        name: "Complains & Suggestions",
+        path: "/supportbox",
+      },
     ],
     open: false,
     active: false,

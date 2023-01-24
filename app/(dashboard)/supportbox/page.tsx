@@ -182,7 +182,7 @@ const page = () => {
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
-                          {item.is_resolved ? (
+                          {!item.is_resolved ? (
                             <div
                               onClick={() => handleResolve(item.id)}
                               className="bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
@@ -191,8 +191,10 @@ const page = () => {
                             </div>
                           ) : (
                             <div className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer">
-                              Resolved
-                              <CheckCircleIcon className="h-4 w-4" />
+                              <div className="flex justify-center items-center">
+                                Resolved
+                                <CheckCircleIcon className="h-4 w-4" />
+                              </div>
                             </div>
                           )}
                         </div>

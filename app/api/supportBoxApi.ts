@@ -40,6 +40,8 @@ export const resolveSupportBoxFn = async ({
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
-  const response = await privateAuthApi.put<GenericResponse>(`support/${id}`);
+  const response = await privateAuthApi.put<GenericResponse>(
+    `support/resolve/${id}`
+  );
   return response.data;
 };
