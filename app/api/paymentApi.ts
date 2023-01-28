@@ -38,6 +38,14 @@ interface ICreditCard {
   security_code: string;
 }
 
+export interface IOwner {
+  id: string;
+  email: string;
+  fullname: string;
+  avatar: string;
+  wallet: IWallet;
+}
+
 interface ICompletedProject {
   id: string;
   approved: boolean | null;
@@ -47,13 +55,7 @@ interface ICompletedProject {
     id: string;
     proj_title: string;
     proj_period: number;
-    owner: {
-      id: string;
-      email: string;
-      fullname: string;
-      avatar: string;
-      wallet: IWallet;
-    };
+    owner: IOwner;
   };
   winning_offer: {
     id: string;

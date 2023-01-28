@@ -7,7 +7,7 @@ type StatusProps = {
 const RequestStatusBadge = ({ accept }: StatusProps) => {
   if (accept === null) {
     return (
-      <span className="bg-green-200 text-blue-600 py-1 px-3 rounded-full text-xs">
+      <span className="bg-blue-200 text-blue-600 py-1 px-3 rounded-full text-xs">
         Pending
       </span>
     );

@@ -114,7 +114,7 @@ const login = () => {
                 <span className="absolute top-0 left-0 w-4 h-4 transition-all transform scale-150 bg-white rounded-full shadow-sm"></span>
               </div>
               <span className="ml-3 text-sm font-normal text-gray-500 dark:text-gray-400">
-                Remember me
+                Trust This Device?
               </span>
             </label>
 

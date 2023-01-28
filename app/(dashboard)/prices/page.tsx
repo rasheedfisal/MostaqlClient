@@ -10,6 +10,7 @@ import EditIcon from "../../../icons/EditIcon";
 import DeleteIcon from "../../../icons/DeleteIcon";
 import TableLoader from "../../../components/TableLoader";
 import { deletePriceFn, getAllPricesFn } from "../../api/pricesApi";
+import { USDollar } from "../../api/currencyFormatter";
 const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
@@ -110,10 +111,10 @@ const page = () => {
                         {price.range_name}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        {price.range_from}
+                        {USDollar.format(price.range_from)}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        {price.range_to}
+                        {USDollar.format(price.range_to)}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">

@@ -13,6 +13,7 @@ import { useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import ResolveStatusBadge from "../../../components/ResolveStatusBadge";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import ChatButton from "../../../components/ChatButton";
 const page = () => {
   const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
@@ -182,6 +183,11 @@ const page = () => {
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
+                          <ChatButton
+                            user={item.User}
+                            color="blue"
+                            who="User"
+                          />
                           {!item.is_resolved ? (
                             <div
                               onClick={() => handleResolve(item.id)}

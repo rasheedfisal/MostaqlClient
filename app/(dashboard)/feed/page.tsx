@@ -14,6 +14,8 @@ import ReactPaginate from "react-paginate";
 import { useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import RequestStatusBadge from "../../../components/RequestStatusBadge";
+import ChatButton from "../../../components/ChatButton";
+import { USDollar } from "../../api/currencyFormatter";
 const page = () => {
   const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
@@ -227,11 +229,12 @@ const page = () => {
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <span className="font-semibold">
-                          Credit: {item.User.wallet?.credit ?? 0}
+                          Credit:{" "}
+                          {USDollar.format(item.User.wallet?.credit ?? 0)}
                         </span>
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        {item.amount}
+                        {USDollar.format(item.amount)}
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         {item.attachment ? (
@@ -251,6 +254,11 @@ const page = () => {
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
+                          <ChatButton
+                            user={item.User}
+                            color="blue"
+                            who="User"
+                          />
                           {item.accepted ? (
                             !item.is_transfered && (
                               <div

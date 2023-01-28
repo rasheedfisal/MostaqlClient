@@ -7,6 +7,7 @@ import {
   getAllCompletedProjectRequest,
   approveCompleteProjectRequestFn,
   transferCompletedProjectMoneyFn,
+  IOwner,
 } from "../../api/paymentApi";
 import useAccessToken from "../../../hooks/useAccessToken";
 import TableLoader from "../../../components/TableLoader";
@@ -14,6 +15,9 @@ import ReactPaginate from "react-paginate";
 import { useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import RequestStatusBadge from "../../../components/RequestStatusBadge";
+import ChatButton from "../../../components/ChatButton";
+import { ISysUser } from "../../../typings";
+import { USDollar } from "../../api/currencyFormatter";
 const page = () => {
   const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
@@ -137,6 +141,18 @@ const page = () => {
     }
   };
 
+  const getOwner = (user: IOwner): ISysUser => {
+    const setUser: ISysUser = {
+      id: user.id,
+      fullname: user.fullname,
+      email: user.email!,
+      imgPath: user.avatar!,
+      is_active: true,
+      phone: "099999933",
+    };
+    return setUser;
+  };
+
   if (isLoading) {
     return <p>Loading...</p>;
   }
@@ -223,7 +239,9 @@ const page = () => {
                             </p>
                             <p className="text-sm">
                               Credit:{" "}
-                              {item.ownerProject.owner.wallet?.credit ?? 0}
+                              {USDollar.format(
+                                item.ownerProject.owner.wallet?.credit ?? 0
+                              )}
                             </p>
                           </div>
                         </div>
@@ -253,29 +271,39 @@ const page = () => {
                             </p>
                             <p className="text-sm">
                               Credit:{" "}
-                              {item.winning_offer.client.wallet?.credit ?? 0}
+                              {USDollar.format(
+                                item.winning_offer.client.wallet?.credit ?? 0
+                              )}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <span className="block">
-                          Amount: {item.winning_offer.price}
+                          Amount: {USDollar.format(item.winning_offer.price)}
                         </span>
                         <span className="block">
                           After Commission:{" "}
-                          {Math.round(
-                            (item.winning_offer.price *
-                              item.winning_offer.commissionRate.ratepercent) /
-                              100
+                          {USDollar.format(
+                            Math.round(
+                              (item.winning_offer.price *
+                                item.winning_offer.commissionRate.ratepercent) /
+                                100
+                            )
                           )}
                         </span>
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                         <RequestStatusBadge accept={item.approved} />
                       </td>
+
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
+                          <ChatButton
+                            user={getOwner(item.ownerProject.owner)}
+                            color="blue"
+                            who="Owner"
+                          />
                           {item.approved ? (
                             !item.is_transfered && (
                               <div
