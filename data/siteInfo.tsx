@@ -108,6 +108,10 @@ export const links: ILinks[] = [
         name: "Paypal Account",
         path: "/paypal",
       },
+      {
+        name: "Credit Card Account",
+        path: "/creditcards",
+      },
     ],
     open: false,
     active: false,

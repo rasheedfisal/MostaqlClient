@@ -1,4 +1,5 @@
 import { IUpdsertContact } from "../(dashboard)/contact/page";
+import { ICard } from "../(dashboard)/creditcards/page";
 import { IUpdsertPaypal } from "../(dashboard)/paypal/page";
 import { IUpdsertPrivacy } from "../(dashboard)/privacy/page";
 import { IUpdsertWithdraw } from "../(dashboard)/withdraw/page";
@@ -111,6 +112,30 @@ export const updatePaypalFn = async ({
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.post<GenericResponse>(
     `siteadmin/paypal`,
+    data
+  );
+  return response.data;
+};
+
+export const getCreditCardFn = async (accessToken: string) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.get<ICard>(`siteadmin/creditcard`);
+  return response.data;
+};
+export const updateCreditCardFn = async ({
+  data,
+  accessToken,
+}: {
+  data: ICard;
+  accessToken: string;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.post<GenericResponse>(
+    `siteadmin/creditcard`,
     data
   );
   return response.data;
