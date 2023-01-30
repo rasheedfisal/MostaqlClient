@@ -265,7 +265,7 @@ const page = () => {
                                 onClick={() => handleTransfer(item.id!, true)}
                                 className="bg-green-600 hover:bg-green-700 text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150 cursor-pointer"
                               >
-                                Withdraw Money
+                                Send Money
                               </div>
                             )
                           ) : (
