@@ -1,5 +1,11 @@
-import React, { MouseEventHandler, RefObject, useState } from "react";
+import React, { MouseEventHandler, RefObject, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { getAllUserNotitifcationsFn } from "../app/api/notificationApi";
+import useAccessToken from "../hooks/useAccessToken";
+import { toast } from "react-toastify";
+import useIntersectionObserver from "../hooks/useIntersectionObserver";
+import { formatDistance, subDays, parseISO } from "date-fns";
 type NotificationPanelProps = {
   NotificationPanelRef: RefObject<HTMLDivElement>;
   handleClick: MouseEventHandler;
@@ -9,7 +15,43 @@ function NotificationPanel({
   NotificationPanelRef,
   handleClick,
 }: NotificationPanelProps) {
-  const [activeTab, setActiveTab] = useState("action");
+  const [activeTab, setActiveTab] = useState("user");
+  const token = useAccessToken();
+  const {
+    fetchNextPage, //function
+    hasNextPage, // boolean
+    isFetchingNextPage, // boolean
+    data: items,
+    status,
+    isLoading,
+    isSuccess,
+    error,
+  } = useInfiniteQuery(
+    ["notifications"],
+    ({ pageParam = 1 }) => getAllUserNotitifcationsFn(token, pageParam),
+    {
+      retry: 1,
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.length ? allPages.length + 1 : undefined;
+      },
+      onError: (error) => {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
+            position: "top-right",
+          });
+        }
+      },
+    }
+  );
+  const lastUserRef = useRef<HTMLDivElement>(null);
+
+  useIntersectionObserver({
+    target: lastUserRef,
+    onIntersect: fetchNextPage,
+    enabled: hasNextPage,
+  });
+  if (status === "error")
+    return <p className="center">Error: {(error as any).response.data.msg}</p>;
 
   const handleSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "32") {
@@ -26,7 +68,56 @@ function NotificationPanel({
     }`;
   };
 
-  const notification = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const content = items?.pages.map((pg) => {
+    return pg.map((chatuser, i) => {
+      return (
+        <a
+          href="#"
+          key={i}
+          className={`block hover:bg-primary-lighter rounded-md ${
+            i % 2 === 0 ? "bg-gray-100" : ""
+          }`}
+        >
+          <div className="flex px-4 space-x-4">
+            <div className="relative flex-shrink-0">
+              <span className="relative z-10 inline-block overflow-visible rounded-ful">
+                <img
+                  className="object-cover rounded-full w-9 h-9"
+                  src={chatuser.imgPath ?? "/noImg.jpg"}
+                  alt="user"
+                />
+              </span>
+              <div className="absolute h-24 p-px -mt-3 -ml-px bg-primary-50 left-1/2 dark:bg-primary-darker"></div>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <h5 className="text-sm font-semibold text-gray-600 dark:text-light">
+                {chatuser.fullname}
+              </h5>
+              <span className="text-sm text-gray-600 dark:text-primary-light ">
+                {chatuser.role_name}
+              </span>
+              <h6 className="text-sm font-semibold text-gray-600 dark:text-light">
+                {chatuser.title}
+              </h6>
+              <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-light">
+                {chatuser.description}
+              </p>
+              <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
+                {formatDistance(
+                  parseISO(chatuser.createdAt.toString()),
+                  subDays(new Date(), 0),
+                  {
+                    addSuffix: true,
+                    includeSeconds: true,
+                  }
+                )}
+              </span>
+            </div>
+          </div>
+        </a>
+      );
+    });
+  });
 
   return (
     <motion.div
@@ -56,7 +147,6 @@ function NotificationPanel({
       <div className="absolute right-0 p-2 transform translate-x-full">
         {/* <!-- Close button --> */}
         <button
-          // @click="isNotificationsPanelOpen = false"
           onClick={handleClick}
           className="p-2 text-white rounded-md focus:outline-none focus:ring"
         >
@@ -84,18 +174,15 @@ function NotificationPanel({
               Notifications
             </h2>
             <div className="space-x-2">
-              <button
+              {/* <button
                 onClick={() => setActiveTab("action")}
                 className={setActiveClass("action")}
-                //   :className="{'border-primary-dark dark:border-primary': activeTabe == 'action', 'border-transparent': activeTabe != 'action'}"
               >
                 Action
-              </button>
+              </button> */}
               <button
-                //   @click.prevent="activeTabe = 'user'"
                 onClick={() => setActiveTab("user")}
                 className={setActiveClass("user")}
-                //   :className="{'border-primary-dark dark:border-primary': activeTabe == 'user', 'border-transparent': activeTabe != 'user'}"
               >
                 User
               </button>
@@ -106,10 +193,8 @@ function NotificationPanel({
         {/* <!-- Panel content (tabs) --> */}
         <div className="flex-1 pt-4 overflow-y-hidden hover:overflow-y-auto">
           {/* <!-- Action tab --> */}
-          {/* <div className="space-y-4" x-show.transition.in="activeTabe == 'action'"> */}
-          {activeTab === "action" && (
+          {/* {activeTab === "action" && (
             <motion.div
-              // className={`space-y-4 ${activeTab !== "action" ? "hidden" : ""}`}
               className="space-y-4"
               initial={{ opacity: 0, y: -100 }}
               animate={{
@@ -237,13 +322,11 @@ function NotificationPanel({
                 </a>
               </template>
             </motion.div>
-          )}
+          )} */}
 
           {/* <!-- User tab --> */}
-          {/* <motion.div className="space-y-4" x-show.transition.in="activeTabe == 'user'"> */}
           {activeTab === "user" && (
             <motion.div
-              // className={`space-y-4 ${activeTab !== "user" ? "hidden" : ""}`}
               className="space-y-4"
               initial={{ opacity: 0, y: -100 }}
               animate={{
@@ -263,114 +346,23 @@ function NotificationPanel({
                 },
               }}
             >
-              <a href="#" className="block">
-                <div className="flex px-4 space-x-4">
-                  <div className="relative flex-shrink-0">
-                    <span className="relative z-10 inline-block overflow-visible rounded-ful">
-                      <img
-                        className="object-cover rounded-full w-9 h-9"
-                        src="avatar3.png"
-                        alt="Ahmed kamel"
-                      />
-                    </span>
-                    <div className="absolute h-24 p-px -mt-3 -ml-px bg-primary-50 left-1/2 dark:bg-primary-darker"></div>
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <h5 className="text-sm font-semibold text-gray-600 dark:text-light">
-                      Ahmed Kamel
-                    </h5>
-                    <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                      Shared new project "K-WD Dashboard"
-                    </p>
-                    <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                      {" "}
-                      1d ago{" "}
-                    </span>
-                  </div>
-                </div>
-              </a>
-              <a href="#" className="block">
-                <div className="flex px-4 space-x-4">
-                  <div className="relative flex-shrink-0">
-                    <span className="relative z-10 inline-block overflow-visible rounded-ful">
-                      <img
-                        className="object-cover rounded-full w-9 h-9"
-                        src="avatar2.jpg"
-                        alt="Ahmed kamel"
-                      />
-                    </span>
-                    <div className="absolute h-24 p-px -mt-3 -ml-px bg-primary-50 left-1/2 dark:bg-primary-darker"></div>
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <h5 className="text-sm font-semibold text-gray-600 dark:text-light">
-                      John
-                    </h5>
-                    <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                      Commit new changes to K-WD Dashboard project.
-                    </p>
-                    <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                      {" "}
-                      10h ago{" "}
-                    </span>
-                  </div>
-                </div>
-              </a>
-              <a href="#" className="block">
-                <div className="flex px-4 space-x-4">
-                  <div className="relative flex-shrink-0">
-                    <span className="relative z-10 inline-block overflow-visible rounded-ful">
-                      <img
-                        className="object-cover rounded-full w-9 h-9"
-                        src="avatar4.jpg"
-                        alt="Ahmed kamel"
-                      />
-                    </span>
-                    <div className="absolute h-24 p-px -mt-3 -ml-px bg-primary-50 left-1/2 dark:bg-primary-darker"></div>
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <h5 className="text-sm font-semibold text-gray-600 dark:text-light">
-                      Ahmed Kamel
-                    </h5>
-                    <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                      Release new version "K-WD Dashboard"
-                    </p>
-                    <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                      {" "}
-                      20d ago{" "}
-                    </span>
-                  </div>
-                </div>
-              </a>
-
               <div>
-                {notification.map((num) => (
-                  <a href="#" key={num} className="block">
-                    <div className="flex px-4 space-x-4">
-                      <div className="relative flex-shrink-0">
-                        <span className="relative z-10 inline-block overflow-visible rounded-ful">
-                          <img
-                            className="object-cover rounded-full w-9 h-9"
-                            src="avatar.jpg"
-                            alt="Ahmed kamel"
-                          />
-                        </span>
-                        <div className="absolute h-24 p-px -mt-3 -ml-px bg-primary-50 left-1/2 dark:bg-primary-darker"></div>
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <h5 className="text-sm font-semibold text-gray-600 dark:text-light">
-                          Ahmed Kamel
-                        </h5>
-                        <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-lighter">
-                          Release new version "K-WD Dashboard"
-                        </p>
-                        <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
-                          {" "}
-                          20d ago{" "}
-                        </span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
+                {isLoading && <p className="center">Loading...</p>}
+                {isSuccess && content}
+                <div
+                  ref={lastUserRef}
+                  className={`${!hasNextPage ? "hidden" : ""}`}
+                >
+                  {isFetchingNextPage && (
+                    <p className="center">Loading More...</p>
+                  )}
+                </div>
+
+                {!hasNextPage && !isLoading && (
+                  <div className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                    No More Notifications
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

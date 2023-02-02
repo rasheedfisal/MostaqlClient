@@ -19,11 +19,7 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
   const token = useAccessToken();
   const stateContext = useStateContext();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pages, setPages] = useState(0);
-  const queryClient = useQueryClient();
   const debouncedSearchQuery = useDebounce(searchQuery, 700);
-  // const [hasNextPage, setHasNextPage] = useState(false);
 
   const {
     fetchNextPage, //function
@@ -35,7 +31,7 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     isSuccess,
     error,
   } = useInfiniteQuery(
-    [debouncedSearchQuery],
+    ["findUsers", debouncedSearchQuery],
     ({ pageParam = 1 }) =>
       getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
     {
