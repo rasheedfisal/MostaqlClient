@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useReducer } from "react";
-import { ILoginResponse, ISysUser, IToken, IUser } from "../typings";
+import { ILoginResponse, ISysUser, IUser } from "../typings";
 
 type State = {
   authUser: IUser | null;
@@ -12,6 +12,7 @@ type ChatState = {
 type TokenState = {
   token: ILoginResponse | null;
 };
+
 type Action = {
   type: string;
   payload: IUser | null;
@@ -108,6 +109,7 @@ const StateContextProvider = ({ children }: StateContextProviderProps) => {
     CurrenChatReducer,
     initialChatState
   );
+
   const value = {
     state,
     dispatch,

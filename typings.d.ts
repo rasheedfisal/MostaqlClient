@@ -1,8 +1,9 @@
 export interface IUser {
-  // id: string;
+  id: string;
   fullname: string;
   email: string;
   imgPath: string;
+  unreadCount: number;
   permissions: string[];
 }
 export interface ISysUser {

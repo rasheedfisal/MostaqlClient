@@ -4,6 +4,7 @@ import React, {
   KeyboardEventHandler,
   MouseEventHandler,
   RefObject,
+  useState,
 } from "react";
 
 import Image from "next/image";
@@ -15,6 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { logoutUserFn } from "../api/authApi";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import useUpdateEffect from "../../hooks/useUpdateEffect";
 
 type DesktopProps = {
   toggleTheme: MouseEventHandler;
@@ -42,6 +44,7 @@ const DesktopMenu = ({
   const loaded = useLoaded();
   const router = useRouter();
   const stateContext = useStateContext();
+  const [notifyCount, setNotifyCount] = useState(0);
 
   const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
     onSuccess: () => {
@@ -59,6 +62,11 @@ const DesktopMenu = ({
       }
     },
   });
+
+  useUpdateEffect(() => {
+    if (stateContext.state.authUser?.unreadCount)
+      setNotifyCount(stateContext.state.authUser?.unreadCount);
+  }, [stateContext.state]);
 
   return (
     <nav
@@ -115,8 +123,11 @@ const DesktopMenu = ({
       {/* <!-- Notification button --> */}
       <button
         onClick={openNotificationsPanel}
-        className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+        className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker text-xs font-medium relative"
       >
+        <span className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary flex justify-center items-center items">
+          <span className="text-light">{notifyCount}</span>
+        </span>
         <span className="sr-only">Open Notification panel</span>
         <svg
           className="w-7 h-7"

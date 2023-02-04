@@ -6,7 +6,12 @@ import { useStateContext } from "../../../context/AppConext";
 import useAccessToken from "../../../hooks/useAccessToken";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import { ISysUser } from "../../../typings";
-import { createChatFn, getAllUsersChatFn, IChat } from "../../api/chatApi";
+import {
+  createChatFn,
+  getAllLastChatUsersFn,
+  getAllUsersChatFn,
+  IChat,
+} from "../../api/chatApi";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +19,8 @@ import FormSearch from "../../../components/FormSearch";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { formatDistance, subDays, parseISO } from "date-fns";
 import io from "socket.io-client";
+import useDebounce from "../../../hooks/useDebounce";
+import useIntersectionObserver from "../../../hooks/useIntersectionObserver";
 
 type sendMessage = {
   senderId: string;
@@ -39,6 +46,153 @@ const page = () => {
   const stateContext = useStateContext();
   const token = useAccessToken();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 700);
+
+  const {
+    fetchNextPage, //function
+    hasNextPage, // boolean
+    isFetchingNextPage, // boolean
+    data: items,
+    status: lastStatus,
+    isLoading,
+    isSuccess,
+    error: lastError,
+  } = useInfiniteQuery(
+    ["lastchat", debouncedSearchQuery],
+    ({ pageParam = 1 }) =>
+      getAllLastChatUsersFn(token, pageParam, debouncedSearchQuery),
+    {
+      retry: 1,
+      getNextPageParam: (lastPage, allPages) => {
+        return lastPage.length ? allPages.length + 1 : undefined;
+      },
+      onError: (error) => {
+        if ((error as any).response?.data?.msg) {
+          toast.error((error as any).response?.data?.msg, {
+            position: "top-right",
+          });
+        }
+      },
+    }
+  );
+
+  const lastchatRef = useRef<HTMLDivElement>(null);
+  useIntersectionObserver({
+    target: lastchatRef,
+    onIntersect: fetchNextPage,
+    enabled: hasNextPage,
+  });
+
+  const setCurrentChatUser = (
+    id: string,
+    email: string,
+    fullname: string,
+    imgPath: string
+  ): void => {
+    const user: ISysUser = {
+      id: id,
+      email: email,
+      fullname: fullname,
+      imgPath: imgPath,
+      is_active: true,
+      phone: "0000",
+    };
+    stateContext.chatDispatch({
+      type: "SET_Current_Chat",
+      payload: user,
+      setChat: true,
+    });
+  };
+
+  const content = items?.pages.map((pg) => {
+    return pg.map((chatuser, i) => {
+      return (
+        <a
+          key={i}
+          className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none"
+        >
+          {chatuser.sender_id === stateContext.state.authUser?.id ? (
+            <>
+              <img
+                className="object-cover w-10 h-10 rounded-full"
+                src={chatuser.reciever_img ?? "/noImg.jpg"}
+                alt="username"
+              />
+              <div
+                className="w-full pb-2"
+                onClick={() =>
+                  setCurrentChatUser(
+                    chatuser.receiver_id,
+                    chatuser.reciever_email,
+                    chatuser.reciever_name,
+                    chatuser.reciever_img ?? ""
+                  )
+                }
+              >
+                <div className="flex justify-between">
+                  <span className="block ml-2 font-semibold ">
+                    {chatuser.reciever_name}
+                  </span>
+                  <span className="block ml-2 text-sm ">
+                    {formatDistance(
+                      parseISO(chatuser.createdAt.toString()),
+                      subDays(new Date(), 0),
+                      {
+                        addSuffix: true,
+                        includeSeconds: true,
+                      }
+                    )}
+                  </span>
+                </div>
+                <span className="block ml-2 text-sm truncate">
+                  {chatuser.message}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <img
+                className="object-cover w-10 h-10 rounded-full"
+                src={chatuser.sender_img ?? "/noImg.jpg"}
+                alt="username"
+              />
+              <div
+                className="w-full pb-2"
+                onClick={() =>
+                  setCurrentChatUser(
+                    chatuser.sender_id,
+                    chatuser.sender_email,
+                    chatuser.sender_name,
+                    chatuser.sender_img ?? ""
+                  )
+                }
+              >
+                <div className="flex justify-between">
+                  <span className="block ml-2 font-semibold ">
+                    {chatuser.sender_name}
+                  </span>
+                  <span className="block ml-2 text-sm ">
+                    {formatDistance(
+                      parseISO(chatuser.createdAt.toString()),
+                      subDays(new Date(), 0),
+                      {
+                        addSuffix: true,
+                        includeSeconds: true,
+                      }
+                    )}
+                  </span>
+                </div>
+                <span className="block ml-2 text-sm truncate">
+                  {chatuser.message}
+                </span>
+              </div>
+            </>
+          )}
+        </a>
+      );
+    });
+  });
 
   const methods = useForm<ICreateMessage>({
     resolver: zodResolver(createMessageSchema),
@@ -149,12 +303,6 @@ const page = () => {
       onSuccess: (data) => {
         data?.pages.map((pg) => {
           setChat((prev) => Array.from(new Set([...prev, ...pg])));
-          //Array.from(new Set([...prev, ...pg]))
-          // .sort(
-          //   (a, b) =>
-          //     parseISO(a.createdAt.toString()).getTime() -
-          //     parseISO(b.createdAt.toString()).getTime()
-          // )
         });
       },
       onError: (error) => {
@@ -166,25 +314,6 @@ const page = () => {
       },
     }
   );
-
-  // const intObserver = useRef<IntersectionObserver | null>(null);
-  // const lastPostRef = useCallback(
-  //   (node: HTMLLIElement) => {
-  //     if (isFetchingNextPage) return;
-
-  //     if (intObserver.current) intObserver.current.disconnect();
-
-  //     intObserver.current = new IntersectionObserver((chat) => {
-  //       if (chat[0].isIntersecting && hasNextPage) {
-  //         console.log("We are near the last chat!");
-  //         fetchNextPage();
-  //       }
-  //     });
-
-  //     if (node) intObserver.current.observe(node);
-  //   },
-  //   [isFetchingNextPage, fetchNextPage, hasNextPage]
-  // );
 
   if (currentChat === null) {
     return (
@@ -210,55 +339,31 @@ const page = () => {
                 className="block w-full py-2 pl-10 bg-gray-100 rounded outline-none"
                 name="search"
                 placeholder="Search"
+                onChange={(e) => setSearchQuery(e.target.value)}
                 required
               />
             </div>
           </div>
           <ul className="overflow-auto h-[calc(100vh_-_13.5rem)]">
-            <h2 className="my-2 mb-2 ml-2 text-lg">Chats</h2>
+            <h2 className="my-2 mb-2 ml-2 text-lg">Recent</h2>
+            {isLoading && <p className="my-2 mb-2 ml-2 text-sm">Loading...</p>}
             <li>
-              <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none">
-                <img
-                  className="object-cover w-10 h-10 rounded-full"
-                  src="https://cdn.pixabay.com/photo/2018/09/12/12/14/man-3672010__340.jpg"
-                  alt="username"
-                />
-                <div className="w-full pb-2">
-                  <div className="flex justify-between">
-                    <span className="block ml-2 font-semibold ">Jhon Don</span>
-                    <span className="block ml-2 text-sm ">25 minutes</span>
-                  </div>
-                  <span className="block ml-2 text-sm ">bye</span>
+              {isSuccess && content}
+              <div
+                ref={lastchatRef}
+                className={`${!hasNextPage ? "hidden" : ""}`}
+              >
+                {isFetchingNextPage && (
+                  <p className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                    Loading More...
+                  </p>
+                )}
+              </div>
+              {!hasNextPage && !isLoading && (
+                <div className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                  No More Mesaages
                 </div>
-              </a>
-              <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out  border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none">
-                <img
-                  className="object-cover w-10 h-10 rounded-full"
-                  src="https://cdn.pixabay.com/photo/2016/06/15/15/25/loudspeaker-1459128__340.png"
-                  alt="username"
-                />
-                <div className="w-full pb-2">
-                  <div className="flex justify-between">
-                    <span className="block ml-2 font-semibold ">Same</span>
-                    <span className="block ml-2 text-sm ">50 minutes</span>
-                  </div>
-                  <span className="block ml-2 text-sm ">Good night</span>
-                </div>
-              </a>
-              <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none">
-                <img
-                  className="object-cover w-10 h-10 rounded-full"
-                  src="https://cdn.pixabay.com/photo/2018/01/15/07/51/woman-3083383__340.jpg"
-                  alt="username"
-                />
-                <div className="w-full pb-2">
-                  <div className="flex justify-between">
-                    <span className="block ml-2 font-semibold ">Emma</span>
-                    <span className="block ml-2 text-sm ">6 hour</span>
-                  </div>
-                  <span className="block ml-2 text-sm ">Good Morning</span>
-                </div>
-              </a>
+              )}
             </li>
           </ul>
         </div>
@@ -278,28 +383,7 @@ const page = () => {
             </div>
             <div className="relative w-full p-6 overflow-y-auto h-[calc(100vh_-_13.5rem)]">
               <ul className="space-y-2">
-                {/* {chat?.reverse().map((uchat, i) => (
-              <li
-                key={i}
-                className={
-                  uchat.receiver_id === currentChat?.id
-                    ? "flex justify-end"
-                    : "flex justify-start"
-                }
-              >
-                <div
-                  className={`relative max-w-xl px-4 py-2 rounded shadow ${
-                    uchat.receiver_id === currentChat?.id
-                      ? "bg-primary-lighter"
-                      : "bg-info-lighter"
-                  }`}
-                >
-                  <span className="block">{uchat.message}</span>
-                </div>
-              </li>
-            ))} */}
                 <p className="text-center">select user from search</p>
-                {/* <div ref={scrollRef} /> */}
               </ul>
             </div>
 
@@ -383,102 +467,12 @@ const page = () => {
   }
 
   if (status === "error")
-    return (
-      <p className="center">
-        Error: {(error as any).response?.data?.msg?.message}
-      </p>
-    );
+    return <p className="center">Internal Server Error</p>;
 
-  // const content = data?.pages.map((pg) => {
-  //   return pg
-  //     .sort(
-  //       (a, b) =>
-  //         parseISO(a.createdAt.toString()).getTime() -
-  //         parseISO(b.createdAt.toString()).getTime()
-  //     )
-  //     // .map((uchat, i) => {
-  //     //   // if (pg.length === i + 1) {
-  //     //   //   return (
-  //     //   //     <li
-  //     //   //       key={i}
-  //     //   //       ref={scrollRef}
-  //     //   //       className={
-  //     //   //         uchat.receiver_id === currentChat?.id
-  //     //   //           ? "flex justify-end"
-  //     //   //           : "flex justify-start"
-  //     //   //       }
-  //     //   //     >
-  //     //   //       <div
-  //     //   //         className={`relative max-w-xl px-4 py-2 rounded shadow ${
-  //     //   //           uchat.receiver_id === currentChat?.id
-  //     //   //             ? "bg-primary-lighter"
-  //     //   //             : "bg-info-lighter"
-  //     //   //         }`}
-  //     //   //       >
-  //     //   //         <span className="block">{uchat.message}</span>
-  //     //   //       </div>
-  //     //   //     </li>
-  //     //   //   );
-  //     //   // } else if (i === 0) {
-  //     //   // if (i === 0) {
-  //     //   //   return (
-  //     //   //     <li
-  //     //   //       key={i}
-  //     //   //       // ref={lastPostRef}
-  //     //   //       className={
-  //     //   //         uchat.receiver_id === currentChat?.id
-  //     //   //           ? "flex justify-end"
-  //     //   //           : "flex justify-start"
-  //     //   //       }
-  //     //   //     >
-  //     //   //       <div
-  //     //   //         className={`relative max-w-xl px-4 py-2 rounded shadow ${
-  //     //   //           uchat.receiver_id === currentChat?.id
-  //     //   //             ? "bg-primary-lighter"
-  //     //   //             : "bg-info-lighter"
-  //     //   //         }`}
-  //     //   //       >
-  //     //   //         <span className="block">{uchat.message}</span>
-  //     //   //       </div>
-  //     //   //     </li>
-  //     //   //   );
-  //     //   // }
-  //     //   return (
-  //     //     <li
-  //     //       key={i}
-  //     //       className={
-  //     //         uchat.receiver_id === currentChat?.id
-  //     //           ? "flex justify-end"
-  //     //           : "flex justify-start"
-  //     //       }
-  //     //     >
-  //     //       <div
-  //     //         className={`relative max-w-xl px-4 py-2 rounded shadow ${
-  //     //           uchat.receiver_id === currentChat?.id
-  //     //             ? "bg-primary-lighter"
-  //     //             : "bg-info-lighter"
-  //     //         }`}
-  //     //       >
-  //     //         <span className="block">{uchat.message}</span>
-  //     //       </div>
-  //     //     </li>
-  //     //   );
-  //     // });
-  // });
-
-  // const content = data?.pages.map((pg) => {
-  //   return pg
-  //     .sort(
-  //       (a, b) =>
-  //         parseISO(a.createdAt.toString()).getTime() -
-  //         parseISO(b.createdAt.toString()).getTime()
-  //     )
-  // if (status === "loading") {
-  //   return <p>Loading...</p>;
-  // }
+  if (lastError === "error")
+    return <p className="center">Internal Server Error</p>;
 
   return (
-    // <div className="container mx-auto">
     <div className="min-w-full border rounded lg:grid lg:grid-cols-3">
       <div className="border-r hidden lg:block border-gray-300 lg:col-span-1">
         <div className="mx-3 my-3">
@@ -501,55 +495,31 @@ const page = () => {
               className="block w-full py-2 pl-10 bg-gray-100 rounded outline-none"
               name="search"
               placeholder="Search"
+              onChange={(e) => setSearchQuery(e.target.value)}
               required
             />
           </div>
         </div>
         <ul className="overflow-auto h-[calc(100vh_-_13.5rem)]">
-          <h2 className="my-2 mb-2 ml-2 text-lg">Chats</h2>
+          <h2 className="my-2 mb-2 ml-2 text-lg">Recent</h2>
+          {isLoading && <p className="my-2 mb-2 ml-2 text-sm">Loading...</p>}
           <li>
-            <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none">
-              <img
-                className="object-cover w-10 h-10 rounded-full"
-                src="https://cdn.pixabay.com/photo/2018/09/12/12/14/man-3672010__340.jpg"
-                alt="username"
-              />
-              <div className="w-full pb-2">
-                <div className="flex justify-between">
-                  <span className="block ml-2 font-semibold ">Jhon Don</span>
-                  <span className="block ml-2 text-sm ">25 minutes</span>
-                </div>
-                <span className="block ml-2 text-sm ">bye</span>
+            {isSuccess && content}
+            <div
+              ref={lastchatRef}
+              className={`${!hasNextPage ? "hidden" : ""}`}
+            >
+              {isFetchingNextPage && (
+                <p className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                  Loading More...
+                </p>
+              )}
+            </div>
+            {!hasNextPage && !isLoading && (
+              <div className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                No More Mesaages
               </div>
-            </a>
-            <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out  border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none">
-              <img
-                className="object-cover w-10 h-10 rounded-full"
-                src="https://cdn.pixabay.com/photo/2016/06/15/15/25/loudspeaker-1459128__340.png"
-                alt="username"
-              />
-              <div className="w-full pb-2">
-                <div className="flex justify-between">
-                  <span className="block ml-2 font-semibold ">Same</span>
-                  <span className="block ml-2 text-sm ">50 minutes</span>
-                </div>
-                <span className="block ml-2 text-sm ">Good night</span>
-              </div>
-            </a>
-            <a className="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out border-b border-gray-300 cursor-pointer hover:bg-gray-100 hover:text-primary focus:outline-none">
-              <img
-                className="object-cover w-10 h-10 rounded-full"
-                src="https://cdn.pixabay.com/photo/2018/01/15/07/51/woman-3083383__340.jpg"
-                alt="username"
-              />
-              <div className="w-full pb-2">
-                <div className="flex justify-between">
-                  <span className="block ml-2 font-semibold ">Emma</span>
-                  <span className="block ml-2 text-sm ">6 hour</span>
-                </div>
-                <span className="block ml-2 text-sm ">Good Morning</span>
-              </div>
-            </a>
+            )}
           </li>
         </ul>
       </div>
@@ -571,26 +541,6 @@ const page = () => {
           </div>
           <div className="relative w-full p-6 overflow-y-auto h-[calc(100vh_-_13.5rem)]">
             <ul className="space-y-2">
-              {/* {chat?.reverse().map((uchat, i) => (
-                <li
-                  key={i}
-                  className={
-                    uchat.receiver_id === currentChat?.id
-                      ? "flex justify-end"
-                      : "flex justify-start"
-                  }
-                >
-                  <div
-                    className={`relative max-w-xl px-4 py-2 rounded shadow ${
-                      uchat.receiver_id === currentChat?.id
-                        ? "bg-primary-lighter"
-                        : "bg-info-lighter"
-                    }`}
-                  >
-                    <span className="block">{uchat.message}</span>
-                  </div>
-                </li>
-              ))} */}
               <div>
                 <button
                   className="bg-warning-lighter p-2 rounded-md"
@@ -604,9 +554,6 @@ const page = () => {
                     : "Nothing more to load"}
                 </button>
               </div>
-              {/* {isFetchingNextPage && (
-                <p className="text-center">Loading More Posts...</p>
-              )} */}
               {Array.from(new Set(chat))
                 .sort(
                   (a, b) =>
@@ -648,62 +595,6 @@ const page = () => {
             </ul>
           </div>
 
-          {/* <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-6 h-6 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
-              <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                  />
-                </svg>
-              </button> */}
-
-          {/* <input
-              type="text"
-              placeholder="Message"
-              className="block w-full py-2 pl-4 mx-3 bg-gray-100 rounded-full outline-none focus:text-gray-700"
-              name="message"
-              required
-            /> */}
-          {/* <button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                  />
-                </svg>
-              </button> */}
           <FormProvider {...methods}>
             <form noValidate onSubmit={methods.handleSubmit(onSubmitHandler)}>
               <div className="flex items-center justify-between w-full p-3 border-t border-gray-300">

@@ -12,6 +12,20 @@ import { privateAuthApi } from "./axios";
 
 type chatUser = Omit<ISysUser, "Role" | "phone">;
 
+interface LastChat {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  message: string;
+  createdAt: Date;
+  sender_name: string;
+  sender_email: string;
+  sender_img: string | null;
+  reciever_name: string;
+  reciever_email: string;
+  reciever_img: string | null;
+}
+
 export const getAllChatUsersFn = async (
   accessToken: string | undefined,
   pageNo: number,
@@ -22,6 +36,20 @@ export const getAllChatUsersFn = async (
   ] = `Bearer ${accessToken}`;
   const response = await privateAuthApi.post<IPaginatedResponse<ISysUser>>(
     `users/userschat?page=${pageNo}&size=10&query=${searchTerm}`
+  );
+  return response.data.results;
+};
+
+export const getAllLastChatUsersFn = async (
+  accessToken: string | undefined,
+  pageNo: number,
+  searchTerm: string
+) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.post<IPaginatedResponse<LastChat>>(
+    `conversations/lastchats?page=${pageNo}&size=10&search=${searchTerm}`
   );
   return response.data.results;
 };

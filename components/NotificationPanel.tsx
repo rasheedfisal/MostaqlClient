@@ -6,6 +6,7 @@ import useAccessToken from "../hooks/useAccessToken";
 import { toast } from "react-toastify";
 import useIntersectionObserver from "../hooks/useIntersectionObserver";
 import { formatDistance, subDays, parseISO } from "date-fns";
+import { useStateContext } from "../context/AppConext";
 type NotificationPanelProps = {
   NotificationPanelRef: RefObject<HTMLDivElement>;
   handleClick: MouseEventHandler;
@@ -17,6 +18,7 @@ function NotificationPanel({
 }: NotificationPanelProps) {
   const [activeTab, setActiveTab] = useState("user");
   const token = useAccessToken();
+  const stateContext = useStateContext();
   const {
     fetchNextPage, //function
     hasNextPage, // boolean
@@ -81,6 +83,11 @@ function NotificationPanel({
           <div className="flex px-4 space-x-4">
             <div className="relative flex-shrink-0">
               <span className="relative z-10 inline-block overflow-visible rounded-ful">
+                {!chatuser.read ? (
+                  <span className="absolute -top-2 -right-1 h-5 w-8 rounded-full bg-red-600 flex justify-center items-center items">
+                    <span className="text-light text-xs">new</span>
+                  </span>
+                ) : null}
                 <img
                   className="object-cover rounded-full w-9 h-9"
                   src={chatuser.imgPath ?? "/noImg.jpg"}
@@ -98,10 +105,14 @@ function NotificationPanel({
               </span>
               <h6 className="text-sm font-semibold text-gray-600 dark:text-light">
                 {chatuser.title}
+                {/* {chatuser.receiver_id} */}
               </h6>
               <p className="text-sm font-normal text-gray-400 truncate dark:text-primary-light">
                 {chatuser.description}
               </p>
+              {/* <p className="text-sm font-normal text-gray-400 dark:text-primary-light">
+                
+              </p> */}
               <span className="text-sm font-normal text-gray-400 dark:text-primary-light">
                 {formatDistance(
                   parseISO(chatuser.createdAt.toString()),
@@ -354,7 +365,9 @@ function NotificationPanel({
                   className={`${!hasNextPage ? "hidden" : ""}`}
                 >
                   {isFetchingNextPage && (
-                    <p className="center">Loading More...</p>
+                    <p className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                      Loading More...
+                    </p>
                   )}
                 </div>
 

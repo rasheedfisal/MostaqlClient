@@ -172,7 +172,7 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
           <input
             ref={SearchPanelRef}
             onChange={(e) => setSearchQuery(e.target.value)}
-            type="text"
+            type="search"
             className="w-full py-2 pl-10 pr-4 border rounded-full dark:bg-dark dark:border-transparent dark:text-light focus:outline-none focus:ring"
             placeholder="Search..."
           />
@@ -189,7 +189,9 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
 
           <div ref={lastUserRef} className={`${!hasNextPage ? "hidden" : ""}`}>
             {isFetchingNextPage && (
-              <p className="center">Loading More Users...</p>
+              <p className="text-center bg-gray-50 p-2 rounded-md text-gray-400 text-sm mt-5">
+                Loading More...
+              </p>
             )}
           </div>
 
