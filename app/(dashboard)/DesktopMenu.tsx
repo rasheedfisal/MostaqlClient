@@ -66,7 +66,7 @@ const DesktopMenu = ({
     setTimeout(() => {
       if (stateContext.state.authUser?.unreadCount)
         setNotifyCount(stateContext.state.authUser?.unreadCount);
-    }, 700);
+    }, 1200);
   }, []);
 
   useUpdateEffect(() => {
