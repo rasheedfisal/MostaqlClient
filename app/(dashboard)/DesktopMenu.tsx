@@ -62,12 +62,9 @@ const DesktopMenu = ({
       }
     },
   });
-  useUpdateEffect(() => {
-    setTimeout(() => {
-      if (stateContext.state.authUser?.unreadCount)
-        setNotifyCount(stateContext.state.authUser?.unreadCount);
-    }, 1200);
-  }, []);
+  // useUpdateEffect(() => {
+  //   setNotifyCount(stateContext.state.authUser?.unreadCount!);
+  // }, []);
 
   useUpdateEffect(() => {
     if (stateContext.state.authUser?.unreadCount)

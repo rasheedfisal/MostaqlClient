@@ -31,6 +31,7 @@ export type LoginInput = TypeOf<typeof loginSchema>;
 const login = () => {
   const [useToken, setUseToken] = useState("");
   const router = useRouter();
+  const [enableQuery, setEnableQuery] = useState(false);
 
   const methods = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -39,15 +40,23 @@ const login = () => {
   const stateContext = useStateContext();
 
   // API Get Current Logged-in user
-  const query = useQuery(["authUser", 1200], () => getMeFn(useToken), {
-    enabled: false,
-    select: (data) => data,
-    retry: 1,
-    // staleTime: Infinity,
-    onSuccess: (data) => {
-      stateContext.dispatch({ type: "SET_USER", payload: data });
-    },
-  });
+  const { isFetching: isUserDataLoading } = useQuery(
+    ["authUser", 1200],
+    () => getMeFn(useToken),
+    {
+      enabled: enableQuery,
+      select: (data) => data,
+      retry: 1,
+      // staleTime: Infinity,
+      onSuccess: (data) => {
+        stateContext.dispatch({ type: "SET_USER", payload: data });
+        toast.success("You successfully logged in");
+        Cookies.set("loggedin", "true");
+        // Cookies.set("accessToken", data.token);
+        router.push("/home");
+      },
+    }
+  );
 
   //  API Login Mutation
   const { mutate: loginUser, isLoading } = useMutation(
@@ -56,11 +65,8 @@ const login = () => {
       onSuccess: (data) => {
         setUseToken(data.token);
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
-        query.refetch();
-        toast.success("You successfully logged in");
-        Cookies.set("loggedin", "true");
-        // Cookies.set("accessToken", data.token);
-        router.push("/home");
+        // query.refetch();
+        setEnableQuery(true);
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -135,7 +141,7 @@ const login = () => {
             </button> */}
             <SubmitButton
               title="Login"
-              clicked={isLoading}
+              clicked={isLoading || isUserDataLoading}
               loadingTitle="loading..."
               icon={
                 <svg
