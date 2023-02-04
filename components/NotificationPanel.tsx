@@ -77,7 +77,7 @@ function NotificationPanel({
           href="#"
           key={i}
           className={`block hover:bg-primary-lighter rounded-md ${
-            i % 2 === 0 ? "bg-gray-100" : ""
+            i % 2 === 0 ? "bg-gray-100 dark:bg-gray-800" : ""
           }`}
         >
           <div className="flex px-4 space-x-4">
