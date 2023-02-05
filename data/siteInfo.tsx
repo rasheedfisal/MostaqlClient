@@ -165,14 +165,14 @@ export const links: ILinks[] = [
         name: "Roles",
         path: "/roles",
       },
-      {
-        name: "Login",
-        path: "/login",
-      },
-      {
-        name: "Register",
-        path: "/register",
-      },
+      // {
+      //   name: "Login",
+      //   path: "/login",
+      // },
+      // {
+      //   name: "Register",
+      //   path: "/register",
+      // },
     ],
     open: false,
     active: false,

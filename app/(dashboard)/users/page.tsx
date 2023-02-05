@@ -18,6 +18,7 @@ import { useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import { PowerIcon, LightBulbIcon } from "@heroicons/react/24/solid";
 const ManageUsers = () => {
+  const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -44,6 +45,9 @@ const ManageUsers = () => {
         }
         if (e?.currentPage) {
           setPageNumber(e.currentPage);
+        }
+        if (e?.totalPages) {
+          setPages(e.totalPages);
         }
       },
       onError: (error) => {
@@ -252,7 +256,7 @@ const ManageUsers = () => {
                     nextLabel="next >"
                     onPageChange={(e) => setPageNumber(e.selected + 1)}
                     pageRangeDisplayed={10}
-                    pageCount={pageNumber}
+                    pageCount={pages}
                     previousLabel="< previous"
                     renderOnZeroPageCount={undefined}
                     containerClassName="isolate inline-flex -space-x-px rounded-md shadow-sm"
