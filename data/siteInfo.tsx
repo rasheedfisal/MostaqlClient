@@ -6,6 +6,7 @@ import {
   AdjustmentsVerticalIcon,
   Cog6ToothIcon,
   CurrencyDollarIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/solid";
 
 interface ILinks {
@@ -43,6 +44,18 @@ export const links: ILinks[] = [
       {
         name: "Cancellation Requests",
         path: "/projectcancellation",
+      },
+    ],
+    open: false,
+    active: false,
+  },
+  {
+    title: "Notifications",
+    icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />,
+    links: [
+      {
+        name: "Manage",
+        path: "/notifications",
       },
     ],
     open: false,

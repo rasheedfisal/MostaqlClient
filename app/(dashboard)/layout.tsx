@@ -5,7 +5,7 @@ import Backdrop from "../../components/Backdrop";
 import SettingPanel from "../../components/SettingPanel";
 import { motion, AnimatePresence, useCycle } from "framer-motion";
 import { usePathname } from "next/navigation";
-import NotificationPanel from "../../components/NotificationPanel";
+import NotificationPanel from "./NotificationPanel";
 import SearchPanel from "./SearchPanel";
 import { useLocalStorage } from "../../hooks/useStorage";
 import { useLoaded } from "../../hooks/useLoaded";

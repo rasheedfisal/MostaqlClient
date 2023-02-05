@@ -4,16 +4,15 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
-  deleteRateFn,
-  getAllCommissionRatesFn,
-} from "../../api/commissionrateApi";
+  getAllSenderNotitifcationsFn,
+  deleteNotificationFn,
+} from "../../api/notificationApi";
 import useAccessToken from "../../../hooks/useAccessToken";
-import EditIcon from "../../../icons/EditIcon";
-import DeleteIcon from "../../../icons/DeleteIcon";
 import TableLoader from "../../../components/TableLoader";
 import ReactPaginate from "react-paginate";
 import { useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
+import DeleteIcon from "../../../icons/DeleteIcon";
 const page = () => {
   const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
@@ -26,13 +25,15 @@ const page = () => {
     isLoading,
     isFetching,
     isPreviousData,
-    data: items,
+    data: notifications,
   } = useQuery(
-    ["rates", pageNumber, pageSize],
-    () => getAllCommissionRatesFn(token, pageNumber, pageSize),
+    ["senderNotification", pageNumber, pageSize],
+    () => getAllSenderNotitifcationsFn(token, pageNumber),
     {
       select: (data) => data,
       retry: 1,
+      // staleTime: 0,
+      // cacheTime: 0,
       keepPreviousData: true,
       onSuccess: (e) => {
         if (e?.totalItems) {
@@ -58,22 +59,22 @@ const page = () => {
   useUpdateEffect(() => {
     if (
       !isPreviousData &&
-      items?.results.length !== undefined &&
-      items?.results.length > 0
+      notifications?.results.length !== undefined &&
+      notifications?.results.length > 0
     ) {
-      queryClient.prefetchQuery(["rates", pageNumber, pageSize], () =>
-        getAllCommissionRatesFn(token, pageNumber, pageSize)
+      queryClient.prefetchQuery(["senderNotification", pageNumber], () =>
+        getAllSenderNotitifcationsFn(token, pageNumber)
       );
     }
-  }, [items, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [notifications, pageNumber, isPreviousData, queryClient]);
 
-  const { isLoading: isDeleteing, mutate: deleteRate } = useMutation(
+  const { isLoading: isDeleteing, mutate: deleteNotification } = useMutation(
     ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteRateFn({ id, accessToken }),
+      deleteNotificationFn({ id, accessToken }),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries(["rates"]);
-        toast.success("Rate deleted successfully");
+        queryClient.invalidateQueries(["senderNotification"]);
+        toast.success("Notification deleted successfully");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
@@ -84,9 +85,10 @@ const page = () => {
       },
     }
   );
+
   const handleDelete = (id: string) => {
     if (confirm("are you sure you want to delete?")) {
-      deleteRate({
+      deleteNotification({
         id: id,
         accessToken: token,
       });
@@ -101,65 +103,55 @@ const page = () => {
     <>
       {/* <!-- Content header --> */}
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
-        <h1 className="text-2xl font-semibold">Manage Commission Rates</h1>
+        <h1 className="text-2xl font-semibold">Manage Notifications</h1>
       </div>
       <div className="grid grid-cols-1 p-4">
         <div className="w-full px-4 py-6 space-y-6 bg-white rounded-md dark:bg-darker">
           <div className="rounded-t mb-0 px-4 py-3 border-0">
             <div className="flex items-center">
               <div className="relative w-full px-4 max-w-full flex-grow flex-1">
-                <h3 className="font-semibold text-base">Rates List</h3>
+                <h3 className="font-semibold text-base">Notification List</h3>
               </div>
               <div className="relative w-full px-4 max-w-full flex-grow flex-1 text-right">
                 <Link
-                  href="/rate/add"
+                  href="/notifications/add"
                   className="bg-primary hover:bg-primary-dark text-white focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark text-xs font-bold uppercase px-3 py-1 rounded outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                 >
-                  Create
+                  Send
                 </Link>
               </div>
             </div>
           </div>
           <div className="block w-full overflow-x-auto">
             <div className="relative">
-              {(isDeleteing || isFetching) && <TableLoader />}
+              {(isFetching || isDeleteing) && <TableLoader />}
               <table className="items-center bg-transparent w-full border-collapse ">
                 <thead>
                   <tr>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Rate
+                      Title
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Current
+                      Description
                     </th>
                     <th className="px-6 bg-gray-50 text-gray-500 align-middle border border-solid border-gray-100 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
-                      Action
+                      Time
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {items?.results.map((item) => (
-                    <tr key={item.id}>
+                  {notifications?.results.map((notify) => (
+                    <tr key={notify.id}>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
-                        {item.ratepercent}
+                        {notify.title}
                       </td>
                       <td className="border-t-0 px-6 align-center border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                        <input
-                          type="checkbox"
-                          checked={item.iscurrent}
-                          readOnly
-                        />
+                        {notify.description}
                       </td>
                       <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 ">
                         <div className="flex">
-                          <Link
-                            href={`/rate/${item.id}`}
-                            className="w-4 mr-2 mt-1 transform hover:text-purple-700 hover:scale-110"
-                          >
-                            <EditIcon />
-                          </Link>
                           <div
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => handleDelete(notify.id)}
                             className="w-4 mr-2 mt-1 transform hover:text-red-700 hover:scale-110"
                           >
                             <DeleteIcon />

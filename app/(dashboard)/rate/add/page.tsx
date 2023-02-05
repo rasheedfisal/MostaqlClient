@@ -14,7 +14,6 @@ import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
-import { createPriceFn } from "../../../api/pricesApi";
 import { createRateFn } from "../../../api/commissionrateApi";
 import FormCheckbox from "../../../../components/FormCheckbox";
 

@@ -1,12 +1,16 @@
 import React, { MouseEventHandler, RefObject, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { getAllUserNotitifcationsFn } from "../app/api/notificationApi";
-import useAccessToken from "../hooks/useAccessToken";
+import {
+  getAllUserNotitifcationsFn,
+  senderNotification,
+} from "../api/notificationApi";
+import useAccessToken from "../../hooks/useAccessToken";
 import { toast } from "react-toastify";
-import useIntersectionObserver from "../hooks/useIntersectionObserver";
+import useIntersectionObserver from "../../hooks/useIntersectionObserver";
 import { formatDistance, subDays, parseISO } from "date-fns";
-import { useStateContext } from "../context/AppConext";
+import { useStateContext } from "../../context/AppConext";
+import { useRouter } from "next/navigation";
 type NotificationPanelProps = {
   NotificationPanelRef: RefObject<HTMLDivElement>;
   handleClick: MouseEventHandler;
@@ -18,6 +22,7 @@ function NotificationPanel({
 }: NotificationPanelProps) {
   const [activeTab, setActiveTab] = useState("user");
   const token = useAccessToken();
+  const router = useRouter();
   const stateContext = useStateContext();
   const {
     fetchNextPage, //function
@@ -70,12 +75,25 @@ function NotificationPanel({
     }`;
   };
 
+  const handleViewNotify = (notify: senderNotification) => {
+    stateContext.notificationDispatch({ payload: notify });
+    let notifyCount = stateContext.state.authUser?.unreadCount ?? 0;
+    stateContext.dispatch({
+      type: "SET_USER",
+      payload: {
+        ...stateContext.state.authUser!,
+        unreadCount: --notifyCount,
+      },
+    });
+    router.push("/notifications/view");
+  };
+
   const content = items?.pages.map((pg) => {
     return pg.map((chatuser, i) => {
       return (
-        <a
-          href="#"
+        <div
           key={i}
+          onClick={() => handleViewNotify(chatuser)}
           className={`block hover:bg-primary-lighter rounded-md ${
             i % 2 === 0 ? "bg-gray-100 dark:bg-gray-800" : ""
           }`}
@@ -125,7 +143,7 @@ function NotificationPanel({
               </span>
             </div>
           </div>
-        </a>
+        </div>
       );
     });
   });
