@@ -128,9 +128,11 @@ const DesktopMenu = ({
         onClick={openNotificationsPanel}
         className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker text-xs font-medium relative"
       >
-        <span className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary flex justify-center items-center items">
-          <span className="text-light">{notifyCount}</span>
-        </span>
+        {notifyCount > 0 && (
+          <span className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary flex justify-center items-center items">
+            <span className="text-light">{notifyCount}</span>
+          </span>
+        )}
         <span className="sr-only">Open Notification panel</span>
         <svg
           className="w-7 h-7"

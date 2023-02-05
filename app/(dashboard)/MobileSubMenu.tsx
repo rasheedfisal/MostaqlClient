@@ -1,6 +1,10 @@
 "use client";
 import { Cycle, motion } from "framer-motion";
-import React, { KeyboardEventHandler, MouseEventHandler } from "react";
+import React, {
+  KeyboardEventHandler,
+  MouseEventHandler,
+  useState,
+} from "react";
 import Image from "next/image";
 import avatar from "../../public/avatar.jpg";
 import { useMutation } from "@tanstack/react-query";
@@ -9,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useStateContext } from "../../context/AppConext";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import useUpdateEffect from "../../hooks/useUpdateEffect";
 type MobileSubProps = {
   toggleTheme: MouseEventHandler;
   isDark: boolean;
@@ -32,6 +37,7 @@ const MobileSubMenu = ({
 }: MobileSubProps) => {
   const router = useRouter();
   const stateContext = useStateContext();
+  const [notifyCount, setNotifyCount] = useState(0);
 
   const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
     onSuccess: () => {
@@ -49,6 +55,11 @@ const MobileSubMenu = ({
       }
     },
   });
+
+  useUpdateEffect(() => {
+    if (stateContext.state.authUser?.unreadCount)
+      setNotifyCount(stateContext.state.authUser?.unreadCount);
+  }, [stateContext.state]);
 
   return (
     <motion.nav
@@ -135,6 +146,11 @@ const MobileSubMenu = ({
           onClick={openNotificationsPanel}
           className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
         >
+          {notifyCount > 0 && (
+            <span className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary flex justify-center items-center items">
+              <span className="text-light">{notifyCount}</span>
+            </span>
+          )}
           <span className="sr-only">Open notifications panel</span>
           <svg
             className="w-7 h-7"

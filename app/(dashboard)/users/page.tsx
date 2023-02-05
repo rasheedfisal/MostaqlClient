@@ -16,7 +16,7 @@ import TableLoader from "../../../components/TableLoader";
 import ReactPaginate from "react-paginate";
 import { useState } from "react";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
-import { PowerIcon, LightBulbIcon } from "@heroicons/react/24/solid";
+import { PowerIcon } from "@heroicons/react/24/solid";
 const ManageUsers = () => {
   const [pages, setPages] = useState(0);
   const [records, setRecords] = useState(0);
