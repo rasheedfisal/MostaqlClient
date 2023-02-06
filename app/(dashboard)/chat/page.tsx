@@ -28,16 +28,14 @@ type sendMessage = {
   text: string;
   time: Date;
 };
-type recieveMessage = {
-  senderId: string;
-  text: string;
-};
+// type recieveMessage = {
+//   senderId: string;
+//   text: string;
+// };
 const createMessageSchema = object({
   message: string().min(1, "message is required"),
 });
 export type ICreateMessage = TypeOf<typeof createMessageSchema>;
-
-const skt = io("http://194.195.87.30:89");
 
 const page = () => {
   const [currentChat, setCurrentChat] = useState<ISysUser | null>(null);
@@ -48,6 +46,7 @@ const page = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebounce(searchQuery, 700);
+  const skt = stateContext.socketState.socket;
 
   const {
     fetchNextPage, //function
@@ -210,7 +209,7 @@ const page = () => {
   }, [isSubmitSuccessful]);
 
   useUpdateEffect(() => {
-    skt.emit("addUser", stateContext.state.authUser?.email);
+    skt?.emit("addUser", stateContext.state.authUser?.email);
   }, []);
 
   useUpdateEffect(() => {
@@ -229,7 +228,7 @@ const page = () => {
   }, [stateContext.chatState.currentChat]);
 
   useUpdateEffect(() => {
-    skt.on("getMessage", (data: sendMessage) => {
+    skt?.on("getMessage", (data: sendMessage) => {
       const recevedMsg: IChat = {
         sender_id: data.senderId,
         receiver_id: data.receiverId,
@@ -256,7 +255,7 @@ const page = () => {
         message: values.message,
       });
       setLoadingMessage(false);
-      skt.emit("sendMessage", {
+      skt?.emit("sendMessage", {
         senderId: stateContext.state.authUser?.email,
         receiverId: stateContext.chatState.currentChat?.email, //stateContext.chatState.currentChat?.email
         text: response.message,

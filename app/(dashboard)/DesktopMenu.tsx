@@ -16,7 +16,6 @@ import { useMutation } from "@tanstack/react-query";
 import { logoutUserFn } from "../api/authApi";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
-import useUpdateEffect from "../../hooks/useUpdateEffect";
 
 type DesktopProps = {
   toggleTheme: MouseEventHandler;
@@ -28,6 +27,7 @@ type DesktopProps = {
   openUserProfile: boolean;
   userMenuRef: RefObject<HTMLDivElement>;
   handleUserSpace: KeyboardEventHandler<HTMLDivElement>;
+  notifyCount: number;
 };
 
 const DesktopMenu = ({
@@ -40,18 +40,17 @@ const DesktopMenu = ({
   openUserProfile,
   userMenuRef,
   handleUserSpace,
+  notifyCount,
 }: DesktopProps) => {
   const loaded = useLoaded();
   const router = useRouter();
   const stateContext = useStateContext();
-  const [notifyCount, setNotifyCount] = useState(0);
 
   const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
     onSuccess: () => {
       stateContext.tokenDispatch({ type: "SET_Token", payload: null });
       toast.success("You successfully logged out");
       Cookies.remove("loggedin");
-      // Cookies.remove("accessToken");
       router.push("/");
     },
     onError: (error: any) => {
@@ -62,14 +61,6 @@ const DesktopMenu = ({
       }
     },
   });
-  // useUpdateEffect(() => {
-  //   setNotifyCount(stateContext.state.authUser?.unreadCount!);
-  // }, []);
-
-  useUpdateEffect(() => {
-    if (stateContext.state.authUser?.unreadCount)
-      setNotifyCount(stateContext.state.authUser?.unreadCount);
-  }, [stateContext.state]);
 
   return (
     <nav

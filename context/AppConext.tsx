@@ -2,6 +2,7 @@
 import { createContext, useContext, useReducer } from "react";
 import { senderNotification } from "../app/api/notificationApi";
 import { ILoginResponse, ISysUser, IUser } from "../typings";
+import { Socket, io } from "socket.io-client";
 
 type State = {
   authUser: IUser | null;
@@ -15,6 +16,9 @@ type TokenState = {
 };
 type NotificationState = {
   notification: senderNotification | null;
+};
+type SocketState = {
+  socket: Socket | null;
 };
 
 type Action = {
@@ -35,10 +39,15 @@ type NotificationAction = {
   payload: senderNotification | null;
 };
 
+type SocketAction = {
+  payload: Socket | null;
+};
+
 type Dispatch = (action: Action) => void;
 type ChatDispatch = (action: ChatAction) => void;
 type DispatchToken = (action: TokenAction) => void;
 type DispatchNotification = (action: NotificationAction) => void;
+type DispatchSocket = (action: SocketAction) => void;
 
 const initialState: State = {
   authUser: null,
@@ -54,6 +63,9 @@ const initialTokenState: TokenState = {
 const initialNotificationState: NotificationState = {
   notification: null,
 };
+const initialSocketState: SocketState = {
+  socket: io("http://localhost:3002"),
+};
 
 type StateContextProviderProps = { children: React.ReactNode };
 
@@ -67,6 +79,8 @@ const StateContext = createContext<
       notificationDispatch: DispatchNotification;
       chatState: ChatState;
       chatDispatch: ChatDispatch;
+      socketState: SocketState;
+      socketDispatch: DispatchSocket;
     }
   | undefined
 >(undefined);
@@ -106,6 +120,12 @@ const stateNotificationReducer = (
     notification: action.payload,
   };
 };
+const stateSocketReducer = (state: SocketState, action: SocketAction) => {
+  return {
+    ...state,
+    socket: action.payload,
+  };
+};
 const CurrenChatReducer = (state: ChatState, action: ChatAction) => {
   switch (action.type) {
     case "SET_Current_Chat": {
@@ -131,6 +151,10 @@ const StateContextProvider = ({ children }: StateContextProviderProps) => {
     stateNotificationReducer,
     initialNotificationState
   );
+  const [socketState, socketDispatch] = useReducer(
+    stateSocketReducer,
+    initialSocketState
+  );
   const [chatState, chatDispatch] = useReducer(
     CurrenChatReducer,
     initialChatState
@@ -145,6 +169,8 @@ const StateContextProvider = ({ children }: StateContextProviderProps) => {
     notificationDispatch,
     chatState,
     chatDispatch,
+    socketState,
+    socketDispatch,
   };
   return (
     <StateContext.Provider value={value}>{children}</StateContext.Provider>

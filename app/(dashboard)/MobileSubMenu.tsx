@@ -23,6 +23,7 @@ type MobileSubProps = {
   OpenUserProfilePanel: MouseEventHandler;
   openUserProfile: boolean;
   handleSideMenuSpace: KeyboardEventHandler<HTMLDivElement>;
+  notifyCount: number;
 };
 
 const MobileSubMenu = ({
@@ -34,10 +35,10 @@ const MobileSubMenu = ({
   OpenUserProfilePanel,
   openUserProfile,
   handleSideMenuSpace,
+  notifyCount,
 }: MobileSubProps) => {
   const router = useRouter();
   const stateContext = useStateContext();
-  const [notifyCount, setNotifyCount] = useState(0);
 
   const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
     onSuccess: () => {
@@ -55,11 +56,6 @@ const MobileSubMenu = ({
       }
     },
   });
-
-  useUpdateEffect(() => {
-    if (stateContext.state.authUser?.unreadCount)
-      setNotifyCount(stateContext.state.authUser?.unreadCount);
-  }, [stateContext.state]);
 
   return (
     <motion.nav
@@ -144,11 +140,11 @@ const MobileSubMenu = ({
         <button
           // @click="openNotificationsPanel(); $nextTick(() => { isMobileSubMenuOpen = false })"
           onClick={openNotificationsPanel}
-          className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker"
+          className="p-2 transition-colors duration-200 rounded-full text-primary-lighter bg-primary-50 hover:text-primary hover:bg-primary-100 dark:hover:text-light dark:hover:bg-primary-dark dark:bg-dark focus:outline-none focus:bg-primary-100 dark:focus:bg-primary-dark focus:ring-primary-darker relative"
         >
           {notifyCount > 0 && (
             <span className="absolute -top-2 -right-1 h-5 w-5 rounded-full bg-primary flex justify-center items-center items">
-              <span className="text-light">{notifyCount}</span>
+              <span className="text-light text-sm">{notifyCount}</span>
             </span>
           )}
           <span className="sr-only">Open notifications panel</span>

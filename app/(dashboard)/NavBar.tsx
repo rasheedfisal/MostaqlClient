@@ -7,11 +7,15 @@ import React, {
   MouseEventHandler,
   RefObject,
   SetStateAction,
+  useState,
 } from "react";
 import MobileSubMenu from "./MobileSubMenu";
 import MobileMainMenu from "./MobileMainMenu";
 import DesktopMenu from "./DesktopMenu";
 import Link from "next/link";
+import useUpdateEffect from "../../hooks/useUpdateEffect";
+import { useStateContext } from "../../context/AppConext";
+import { useQueryClient } from "@tanstack/react-query";
 
 type NavProps = {
   setIsMobileMainMenuOpen: Dispatch<SetStateAction<boolean>>;
@@ -30,6 +34,11 @@ type NavProps = {
   handleUserSpace: KeyboardEventHandler<HTMLDivElement>;
   handleSideMenuSpace: KeyboardEventHandler<HTMLDivElement>;
 };
+interface recieveNotifications {
+  receiverId: string;
+  title: string;
+  description: string;
+}
 
 const NavBar = ({
   setIsMobileMainMenuOpen,
@@ -48,6 +57,25 @@ const NavBar = ({
   handleUserSpace,
   handleSideMenuSpace,
 }: NavProps) => {
+  const stateContext = useStateContext();
+  const [notifyCount, setNotifyCount] = useState(0);
+  const queryClient = useQueryClient();
+  const skt = stateContext.socketState.socket;
+
+  useUpdateEffect(() => {
+    skt?.on("getNotification", (data: recieveNotifications) => {
+      queryClient.invalidateQueries(["notifications"]);
+      setNotifyCount((prev) => ++prev);
+    });
+  }, [skt]);
+
+  useUpdateEffect(() => {
+    if (stateContext.state.authUser?.email !== undefined) {
+      skt?.emit("addUser", stateContext.state.authUser?.email);
+    }
+    if (stateContext.state.authUser?.unreadCount)
+      setNotifyCount(stateContext.state.authUser?.unreadCount);
+  }, [stateContext.state]);
   return (
     <header className="relative bg-white dark:bg-darker">
       <div className="flex items-center justify-between p-2 border-b dark:border-primary-darker">
@@ -139,6 +167,7 @@ const NavBar = ({
           openUserProfile={openUserProfile}
           toggleTheme={toggleTheme}
           userMenuRef={userMenuRef}
+          notifyCount={notifyCount}
         />
         {/* <!-- Mobile sub menu --> */}
         <AnimatePresence>
@@ -153,6 +182,7 @@ const NavBar = ({
               openUserProfile={openUserProfile}
               // setIsMobileSubMenuOpen={setIsMobileSubMenuOpen}
               toggleTheme={toggleTheme}
+              notifyCount={notifyCount}
             />
           )}
         </AnimatePresence>

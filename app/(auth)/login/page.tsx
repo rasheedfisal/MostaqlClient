@@ -53,7 +53,7 @@ const login = () => {
         toast.success("You successfully logged in");
         Cookies.set("loggedin", "true");
         // Cookies.set("accessToken", data.token);
-        router.push("/home");
+        setTimeout(() => router.push("/home"), 1000);
       },
     }
   );
