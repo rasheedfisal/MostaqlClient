@@ -18,7 +18,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FormSearch from "../../../components/FormSearch";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { formatDistance, subDays, parseISO } from "date-fns";
-import io from "socket.io-client";
 import useDebounce from "../../../hooks/useDebounce";
 import useIntersectionObserver from "../../../hooks/useIntersectionObserver";
 

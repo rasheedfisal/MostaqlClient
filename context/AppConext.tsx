@@ -64,7 +64,7 @@ const initialNotificationState: NotificationState = {
   notification: null,
 };
 const initialSocketState: SocketState = {
-  socket: io("http://localhost:3002"),
+  socket: io("http://194.195.87.30:89"),
 };
 
 type StateContextProviderProps = { children: React.ReactNode };
