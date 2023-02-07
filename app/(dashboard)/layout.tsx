@@ -33,7 +33,7 @@ export default function RootLayout({
   const [isDark, setIsDark] = useLocalStorage("dark", false);
 
   const [isMobileMainMenuOpen, setIsMobileMainMenuOpen] = useState(false);
-  useState(false);
+  // useState(false);
 
   const [sidebar, setSidebar] = useState(true);
 

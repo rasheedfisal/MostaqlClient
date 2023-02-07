@@ -70,9 +70,6 @@ const NavBar = ({
   }, [skt]);
 
   useUpdateEffect(() => {
-    if (stateContext.state.authUser?.email !== undefined) {
-      skt?.emit("addUser", stateContext.state.authUser?.email);
-    }
     if (stateContext.state.authUser?.unreadCount)
       setNotifyCount(stateContext.state.authUser?.unreadCount);
   }, [stateContext.state]);

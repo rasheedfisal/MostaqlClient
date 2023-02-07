@@ -21,6 +21,47 @@ interface IWithdraw {
   amount: number;
 }
 
+interface IStatistics {
+  statistics: {
+    usersCount: number;
+    currentCommision: number;
+    ongoingProjects: number;
+    openProjects: number;
+    completedProjects: number;
+    closedProjects: number;
+    closedProjectRequests: number;
+    completedProjectRequests: number;
+    accountFeedRequests: number;
+    moneyWithdrawalRequests: number;
+    earnings: number;
+  };
+  userRoles: [
+    {
+      count: number;
+      role_name: string;
+    }
+  ];
+  projectCategory: [
+    {
+      count: number;
+      cat_name: string;
+    }
+  ];
+  earningPerMonth: [
+    {
+      earning_per_month: number;
+      month: number;
+      year: number;
+    }
+  ];
+  authorizedUsers: x[];
+}
+
+type x = {
+  count: number;
+  is_authorized: number;
+};
+
 export const getContactFn = async (accessToken: string) => {
   privateAuthApi.defaults.headers.common[
     "Authorization"
@@ -137,6 +178,16 @@ export const updateCreditCardFn = async ({
   const response = await privateAuthApi.post<GenericResponse>(
     `siteadmin/creditcard`,
     data
+  );
+  return response.data;
+};
+
+export const getDashboardStatisticsFn = async (accessToken: string) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.get<IStatistics>(
+    `siteadmin/statistics`
   );
   return response.data;
 };

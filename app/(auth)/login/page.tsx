@@ -52,7 +52,7 @@ const login = () => {
         stateContext.dispatch({ type: "SET_USER", payload: data });
         toast.success("You successfully logged in");
         Cookies.set("loggedin", "true");
-        // Cookies.set("accessToken", data.token);
+        stateContext.socketState.socket?.emit("addUser", data?.email);
         setTimeout(() => router.push("/home"), 1000);
       },
     }

@@ -207,9 +207,9 @@ const page = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  useUpdateEffect(() => {
-    skt?.emit("addUser", stateContext.state.authUser?.email);
-  }, []);
+  // useUpdateEffect(() => {
+  //   skt?.emit("addUser", stateContext.state.authUser?.email);
+  // }, []);
 
   useUpdateEffect(() => {
     if (scrollRef.current) {
