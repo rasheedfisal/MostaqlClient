@@ -81,6 +81,28 @@ export const updateUserFn = async ({
   return response.data;
 };
 
+export const updateAdminProfileFn = async ({
+  formData,
+  accessToken,
+}: {
+  formData: FormData;
+  accessToken: string;
+}) => {
+  privateAuthApi.defaults.headers.common[
+    "Authorization"
+  ] = `Bearer ${accessToken}`;
+  const response = await privateAuthApi.put<ISysUser>(
+    `users/admin/profile`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
+};
+
 export const deleteUserFn = async ({
   id,
   accessToken,

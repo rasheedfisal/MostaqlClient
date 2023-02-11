@@ -14,6 +14,7 @@ import { useStateContext } from "../../context/AppConext";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import useUpdateEffect from "../../hooks/useUpdateEffect";
+import Link from "next/link";
 type MobileSubProps = {
   toggleTheme: MouseEventHandler;
   isDark: boolean;
@@ -262,13 +263,13 @@ const MobileSubMenu = ({
             aria-orientation="vertical"
             aria-label="User menu"
           >
-            <a
-              href="#"
+            <Link
+              href="/profile"
               role="menuitem"
               className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-light dark:hover:bg-primary"
             >
               Your Profile
-            </a>
+            </Link>
             {/* <a
               href="#"
               role="menuitem"

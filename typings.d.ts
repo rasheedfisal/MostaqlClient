@@ -3,6 +3,7 @@ export interface IUser {
   fullname: string;
   email: string;
   imgPath: string;
+  phone?: string;
   unreadCount: number;
   permissions: string[];
 }

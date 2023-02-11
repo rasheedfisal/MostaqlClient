@@ -34,14 +34,6 @@ export const logoutUserFn = async () => {
 };
 
 export const getMeFn = async (accessToken: string | undefined) => {
-  //
-  // const [_, accessToken] = queryKey;
-  // const config = {
-  //   headers: {
-  //     Authorization: `Bearer ${accessToken}`,
-  //   },
-  // };
-  // const headers = { Authorization: `Bearer ${accessToken}` };
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;

@@ -35,6 +35,7 @@ const updateUserSchema = object({
     value: z.string(),
   }),
   profileImage: z.instanceof(File).optional(),
+  password: string().optional(),
 }).partial();
 
 type IUpdateUser = TypeOf<typeof updateUserSchema>;
@@ -138,6 +139,9 @@ const page = ({ params: { userId } }: PageProps) => {
     if (values.profileImage !== undefined) {
       formData.append("profileImage", values.profileImage);
     }
+    if (values.password !== undefined && values.password !== "") {
+      formData.append("password", values.password);
+    }
     updateUser({ id: userId, formData, accessToken: token });
   };
 
@@ -186,6 +190,7 @@ const page = ({ params: { userId } }: PageProps) => {
                   isMulti={false}
                   isRtl={false}
                 />
+                <FormInput label="Password" type="password" name="password" />
               </div>
               <div className="flex flex-col items-center">
                 <FileUpLoader

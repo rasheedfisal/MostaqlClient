@@ -64,6 +64,10 @@ const initialNotificationState: NotificationState = {
   notification: null,
 };
 const initialSocketState: SocketState = {
+  // socket: io("http://194.195.87.30:89", {
+  //   transports: ["websocket", "polling"],
+  //   autoConnect: false,
+  // }),
   socket: io("http://194.195.87.30:89"),
 };
 

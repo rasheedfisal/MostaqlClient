@@ -1,3 +1,5 @@
+"use client";
+
 import { StateContextProvider } from "../context/AppConext";
 import ReactQueryWrapper from "./ReactQueryWrapper";
 import "react-toastify/dist/ReactToastify.css";

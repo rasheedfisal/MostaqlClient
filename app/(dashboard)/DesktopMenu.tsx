@@ -16,6 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { logoutUserFn } from "../api/authApi";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import Link from "next/link";
 
 type DesktopProps = {
   toggleTheme: MouseEventHandler;
@@ -236,13 +237,13 @@ const DesktopMenu = ({
               aria-orientation="vertical"
               aria-label="User menu"
             >
-              <a
-                href="#"
+              <Link
+                href="/profile"
                 role="menuitem"
                 className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-light dark:hover:bg-primary"
               >
                 Your Profile
-              </a>
+              </Link>
               {/* <a
                 href="#"
                 role="menuitem"
