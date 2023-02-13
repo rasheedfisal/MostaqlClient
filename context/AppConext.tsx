@@ -68,7 +68,8 @@ const initialSocketState: SocketState = {
   //   transports: ["websocket", "polling"],
   //   autoConnect: false,
   // }),
-  socket: io("http://194.195.87.30:89"),
+  // socket: io("http://194.195.87.30:89"),
+  socket: io("http://localhost:3002"),
 };
 
 type StateContextProviderProps = { children: React.ReactNode };

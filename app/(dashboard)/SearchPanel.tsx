@@ -2,7 +2,7 @@
 import React, { MouseEventHandler, RefObject, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import useAccessToken from "../../hooks/useAccessToken";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { getAllChatUsersFn } from "../api/chatApi";
 import { toast } from "react-toastify";
 import { ISysUser } from "../../typings";

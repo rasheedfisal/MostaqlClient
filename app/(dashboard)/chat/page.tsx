@@ -20,19 +20,19 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { formatDistance, subDays, parseISO } from "date-fns";
 import useDebounce from "../../../hooks/useDebounce";
 import useIntersectionObserver from "../../../hooks/useIntersectionObserver";
+import FormUploader from "../../../components/FormUploader";
 
 type sendMessage = {
   senderId: string;
   receiverId: string;
   text: string;
+  message_type: string;
   time: Date;
 };
-// type recieveMessage = {
-//   senderId: string;
-//   text: string;
-// };
 const createMessageSchema = object({
-  message: string().min(1, "message is required"),
+  message: string().optional(),
+  imgAttachment: z.instanceof(File).optional(),
+  fileAttachment: z.instanceof(File).optional(),
 });
 export type ICreateMessage = TypeOf<typeof createMessageSchema>;
 
@@ -46,6 +46,8 @@ const page = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebounce(searchQuery, 700);
   const skt = stateContext.socketState.socket;
+  const [fileUrl, setFileUrl] = useState("");
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const {
     fetchNextPage, //function
@@ -144,7 +146,13 @@ const page = () => {
                   </span>
                 </div>
                 <span className="block ml-2 text-sm truncate">
-                  {chatuser.message}
+                  {chatuser.message_type === "text"
+                    ? chatuser.message
+                    : chatuser.message_type === "image"
+                    ? "view Image..."
+                    : chatuser.message_type === "file"
+                    ? "view document..."
+                    : "Message Undefined"}
                 </span>
               </div>
             </>
@@ -207,10 +215,6 @@ const page = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
 
-  // useUpdateEffect(() => {
-  //   skt?.emit("addUser", stateContext.state.authUser?.email);
-  // }, []);
-
   useUpdateEffect(() => {
     if (scrollRef.current) {
       scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -232,6 +236,7 @@ const page = () => {
         sender_id: data.senderId,
         receiver_id: data.receiverId,
         message: data.text,
+        message_type: data.message_type,
         createdAt: data.time,
       };
       recevedMsg &&
@@ -249,15 +254,34 @@ const page = () => {
         return;
       }
       setLoadingMessage(true);
-      const response = await createChatFn(token, {
-        receiver_id: currentChat?.id!,
-        message: values.message,
-      });
+
+      const formData = new FormData();
+      formData.append("receiver_id", currentChat?.id!);
+      if (values.imgAttachment !== undefined) {
+        formData.append("attachment", values.imgAttachment);
+        formData.append("message", "image");
+        formData.append("message_type", "image");
+      } else if (values.fileAttachment !== undefined) {
+        formData.append("attachment", values.fileAttachment);
+        formData.append("message", "file");
+        formData.append("message_type", "file");
+      } else if (values.message !== undefined && values.message !== "") {
+        formData.append("message", values.message);
+        formData.append("message_type", "text");
+      } else {
+        toast.error("Please Insert a Text or Upload a File", {
+          position: "top-right",
+        });
+        return;
+      }
+      const response = await createChatFn(token, formData);
+
       setLoadingMessage(false);
       skt?.emit("sendMessage", {
         senderId: stateContext.state.authUser?.email,
-        receiverId: stateContext.chatState.currentChat?.email, //stateContext.chatState.currentChat?.email
+        receiverId: stateContext.chatState.currentChat?.email,
         text: response.message,
+        message_type: response.message_type,
         time: response.createdAt,
       });
       if (chat) {
@@ -276,6 +300,11 @@ const page = () => {
       }
     }
   };
+
+  useUpdateEffect(() => {
+    buttonRef.current?.click();
+    // formRef.current?.submit();
+  }, [fileUrl]);
 
   const {
     fetchPreviousPage, //function
@@ -385,66 +414,53 @@ const page = () => {
               </ul>
             </div>
 
-            {/* <button>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </button>
-            <button>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                />
-              </svg>
-            </button> */}
-
-            {/* <input
-            type="text"
-            placeholder="Message"
-            className="block w-full py-2 pl-4 mx-3 bg-gray-100 rounded-full outline-none focus:text-gray-700"
-            name="message"
-            required
-          /> */}
-            {/* <button>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-                />
-              </svg>
-            </button> */}
             <FormProvider {...methods}>
               <form noValidate onSubmit={methods.handleSubmit(onSubmitHandler)}>
                 <div className="flex items-center justify-between w-full p-3 border-t border-gray-300">
+                  <FormUploader
+                    allowdTypes="image/*"
+                    name="imgAttachment"
+                    icon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="w-5 h-5 text-gray-500"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                        />
+                      </svg>
+                    }
+                  />
+
+                  <FormUploader
+                    allowdTypes=".doc, .docx, .pdf, .xls, .xlsx"
+                    name="fileAttachment"
+                    icon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                        />
+                      </svg>
+                    }
+                  />
+
                   <FormSearch label="message..." name="message" type="text" />
+
                   <button type="submit">
                     <svg
                       className="w-5 h-5 text-gray-500 origin-center transform rotate-90"
@@ -574,7 +590,54 @@ const page = () => {
                           : "bg-dark text-white dark:bg-darker"
                       }`}
                     >
-                      <span className="block">{uchat.message}</span>
+                      <span className="block">
+                        {uchat.message_type === "text" ? (
+                          uchat.message
+                        ) : uchat.message_type === "image" ? (
+                          <div className="w-full p-0 flex justify-center">
+                            <a
+                              href={uchat.fileUrl}
+                              target="_blank"
+                              className="cursor-pointer"
+                            >
+                              <img
+                                id="showImage"
+                                className="max-w-lg w-40 items-center border"
+                                src={uchat.fileUrl}
+                                alt=""
+                              />
+                            </a>
+                          </div>
+                        ) : uchat.message_type === "file" ? (
+                          <div>
+                            <a
+                              href={uchat.fileUrl}
+                              target="_blank"
+                              className="w-full p-2 flex justify-between cursor-pointer"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.5}
+                                stroke="currentColor"
+                                className="w-6 h-6"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                                />
+                              </svg>
+                              <label className="underline cursor-pointer">
+                                view document
+                              </label>
+                            </a>
+                          </div>
+                        ) : (
+                          "Message Undefined"
+                        )}
+                      </span>
                       <span className="block text-xs">
                         {formatDistance(
                           parseISO(uchat.createdAt.toString()),
@@ -589,15 +652,59 @@ const page = () => {
                   </li>
                 ))}
 
-              <div ref={scrollRef} />
+              <div ref={scrollRef} className="flex mt-5" />
             </ul>
           </div>
 
           <FormProvider {...methods}>
             <form noValidate onSubmit={methods.handleSubmit(onSubmitHandler)}>
               <div className="flex items-center justify-between w-full p-3 border-t border-gray-300">
+                <FormUploader
+                  setFileUrl={setFileUrl}
+                  allowdTypes="image/*"
+                  name="imgAttachment"
+                  icon={
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      className="w-5 h-5 text-gray-500"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                      />
+                    </svg>
+                  }
+                />
+
+                <FormUploader
+                  setFileUrl={setFileUrl}
+                  allowdTypes=".doc, .docx, .pdf, .xls, .xlsx"
+                  name="fileAttachment"
+                  icon={
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                      />
+                    </svg>
+                  }
+                />
+
                 <FormSearch label="message..." name="message" type="text" />
-                <button type="submit">
+                <button type="submit" ref={buttonRef}>
                   {loadingMessage ? (
                     <svg
                       className="w-4 h-4 origin-center ml-1 animate-spin"
