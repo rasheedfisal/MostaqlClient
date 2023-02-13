@@ -205,7 +205,12 @@ const DesktopMenu = ({
           className="transition-opacity duration-200 rounded-full dark:opacity-75 dark:hover:opacity-100 focus:outline-none focus:ring dark:focus:opacity-100"
         >
           <span className="sr-only">User menu</span>
-          <Image className="w-10 h-10 rounded-full" src={avatar} alt="avatar" />
+          {/* <Image className="w-10 h-10 rounded-full" src={avatar} alt="avatar" /> */}
+          <img
+            className="w-10 h-10 rounded-full"
+            src={stateContext.state.authUser?.imgPath ?? "/noImg.jpg"}
+            alt="avatar"
+          />
         </button>
 
         {/* <!-- User dropdown menu --> */}

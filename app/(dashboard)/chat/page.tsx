@@ -215,6 +215,11 @@ const page = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
+  useUpdateEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, []);
 
   useUpdateEffect(() => {
     if (scrollRef.current) {
