@@ -26,6 +26,7 @@ type sendMessage = {
   senderId: string;
   receiverId: string;
   text: string;
+  fileUrl: string;
   message_type: string;
   time: Date;
 };
@@ -236,6 +237,7 @@ const page = () => {
         sender_id: data.senderId,
         receiver_id: data.receiverId,
         message: data.text,
+        fileUrl: data.fileUrl,
         message_type: data.message_type,
         createdAt: data.time,
       };
@@ -281,6 +283,7 @@ const page = () => {
         senderId: stateContext.state.authUser?.email,
         receiverId: stateContext.chatState.currentChat?.email,
         text: response.message,
+        fileUrl: response.fileUrl,
         message_type: response.message_type,
         time: response.createdAt,
       });
