@@ -1,19 +1,19 @@
 import axios from "axios";
 import { ILoginResponse } from "../../typings";
 
-const BASE_URL = "http://localhost:3000/api/v1/";
+// const BASE_URL = "http://localhost:3000/api/v1/";
 // const BASE_URL = "https://calm-cyan-bullfrog-tie.cyclic.app/api/v1/";
 // const BASE_URL = "http://194.195.87.30:91/api/v1/";
 
 export const authApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: process.env.BASE_URL,
   withCredentials: true,
 });
 
 authApi.defaults.headers.common["Content-Type"] = "application/json";
 
 export const privateAuthApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: process.env.BASE_URL,
   withCredentials: true,
 });
 
