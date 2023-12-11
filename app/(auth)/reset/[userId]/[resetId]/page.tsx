@@ -36,8 +36,7 @@ const page = ({ params: { userId, resetId } }: PageProps) => {
     (userData: IResetPassword) => resetPasswordFn(userData),
     {
       onSuccess: (data) => {
-        toast.success("Sucess: check your email for verfication link");
-        router.push("/login");
+        toast.success("Success: password changed");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {

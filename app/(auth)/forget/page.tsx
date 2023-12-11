@@ -30,8 +30,7 @@ const page = () => {
     (userData: ForgetInput) => verifyEmailFn(userData),
     {
       onSuccess: (data) => {
-        toast.success("Sucess: check your email for verfication link");
-        router.push("/login");
+        toast.success("Success: check your email for verfication link");
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {
