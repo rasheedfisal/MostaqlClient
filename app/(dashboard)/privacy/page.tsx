@@ -21,35 +21,24 @@ const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isItemsLoading } = useQuery(
-    ["getPrivacy"],
-    () => getPrivacyFn(token),
+  const { isLoading: isItemsLoading, data, isSuccess, error } = useQuery(
+    
+    
     {
+      queryKey: ["getPrivacy"],
+      queryFn: () => getPrivacyFn(token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            description: data.description,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateItem } = useMutation(
-    ({ data, accessToken }: { data: IUpdsertPrivacy; accessToken: string }) =>
-      updatePrivacyFn({ data, accessToken }),
+  const { isPending, mutate: updateItem } = useMutation(
+    
     {
+      mutationFn: ({ data, accessToken }: { data: IUpdsertPrivacy; accessToken: string }) =>
+      updatePrivacyFn({ data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["getPrivacy"]);
+        queryClient.invalidateQueries({queryKey:["getPrivacy"]});
         toast.success("Privacy Policy updated successfully");
       },
       onError: (error: any) => {
@@ -65,6 +54,12 @@ const page = () => {
   const methods = useForm<IUpdsertPrivacy>({
     resolver: zodResolver(updsertPrivacySchema),
   });
+
+  if (isSuccess) {
+    methods.reset({
+            description: data.description,
+          });
+  }
 
   if (isItemsLoading) {
     return <p>Loading...</p>;
@@ -102,7 +97,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

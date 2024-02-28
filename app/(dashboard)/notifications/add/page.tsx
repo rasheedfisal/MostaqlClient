@@ -34,12 +34,13 @@ const page = () => {
   const token = useAccessToken();
   const stateContext = useStateContext();
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createNotify } = useMutation(
-    (notify: ICreateNotify) =>
-      createNotitifcationFn({ notify, accessToken: token }),
+  const { isPending, mutate: createNotify } = useMutation(
+   
     {
+      mutationFn:  (notify: ICreateNotify) =>
+      createNotitifcationFn({ notify, accessToken: token }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["senderNotification"]);
+        queryClient.invalidateQueries({queryKey:["senderNotification"]});
         toast.success("Notification created successfully");
       },
       onError: (error: any) => {
@@ -142,7 +143,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

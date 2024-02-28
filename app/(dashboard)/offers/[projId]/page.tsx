@@ -17,24 +17,20 @@ const page = ({ params: { projId } }: PageProps) => {
   const datetest = format(new Date(), "yyyy-MM-dd");
   const token = useAccessToken();
 
-  const { isLoading, data: offers } = useQuery(
-    ["projectOffer"],
-    () => getProjectOffersFn(token, projId, 1, 10),
+  const { isLoading, data: offers, error } = useQuery( 
     {
+      queryKey: ["projectOffer"],
+      queryFn: () => getProjectOffersFn(token, projId, 1, 10),
       select: (data) => data,
-      retry: 1,
-      staleTime: 0,
-      cacheTime: 0,
-      onError: (error) => {
-        // console.log(error);
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
+
+  if (error !== null) {
+    toast.error(error.message, {
+            position: "top-right",
+          });
+  }
 
   if (isLoading) {
     return <p>Loading...</p>;

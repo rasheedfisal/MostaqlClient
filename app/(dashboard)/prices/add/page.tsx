@@ -37,11 +37,11 @@ const page = () => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createPrice } = useMutation(
-    (price: ICreateUpdatePrice) => createPriceFn(price, token),
+  const { isPending, mutate: createPrice } = useMutation(
     {
+      mutationFn:  (price: ICreateUpdatePrice) => createPriceFn(price, token),
       onSuccess: () => {
-        queryClient.invalidateQueries(["prices"]);
+        queryClient.invalidateQueries({queryKey:["prices"]});
         toast.success("Price Range created successfully");
       },
       onError: (error: any) => {
@@ -104,7 +104,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

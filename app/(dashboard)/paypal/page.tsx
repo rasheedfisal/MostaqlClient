@@ -21,35 +21,22 @@ const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isItemsLoading } = useQuery(
-    ["getPaypal"],
-    () => getPaypalFn(token),
+  const { isLoading: isItemsLoading, isSuccess, error, data } = useQuery(
     {
+      queryKey: ["getPaypal"],
+      queryFn: () => getPaypalFn(token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            email: data.email,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateItem } = useMutation(
-    ({ data, accessToken }: { data: IUpdsertPaypal; accessToken: string }) =>
-      updatePaypalFn({ data, accessToken }),
+  const { isPending, mutate: updateItem } = useMutation(
+    
     {
+      mutationFn: ({ data, accessToken }: { data: IUpdsertPaypal; accessToken: string }) =>
+      updatePaypalFn({ data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["getPaypal"]);
+        queryClient.invalidateQueries({queryKey: ["getPaypal"]});
         toast.success("Paypal Account updated successfully");
       },
       onError: (error: any) => {
@@ -65,6 +52,16 @@ const page = () => {
   const methods = useForm<IUpdsertPaypal>({
     resolver: zodResolver(updsertPaypalSchema),
   });
+
+  if (isSuccess) {
+    methods.reset({
+            email: data.email,
+          });
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"})
+  }
 
   if (isItemsLoading) {
     return <p>Loading...</p>;
@@ -102,7 +99,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import useAccessToken from "../../../hooks/useAccessToken";
-import { deleteCategoryFn, getAllCategoriesFn } from "../../api/categoryApi";
-import CircularSvg from "../../../components/CircularSvg";
 import EditIcon from "../../../icons/EditIcon";
 import DeleteIcon from "../../../icons/DeleteIcon";
 import TableLoader from "../../../components/TableLoader";
@@ -14,28 +12,21 @@ import { USDollar } from "../../api/currencyFormatter";
 const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
-  const { isLoading, data: prices } = useQuery(
-    ["prices"],
-    () => getAllPricesFn(token),
+  const { isLoading, data: prices, error } = useQuery( 
     {
+      queryKey: ["prices"],
+      queryFn: () => getAllPricesFn(token),
       select: (data) => data,
-      retry: 1,
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading: isDeleteing, mutate: deletePrice } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deletePriceFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deletePrice } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+      deletePriceFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["prices"]);
+        queryClient.invalidateQueries({queryKey:["prices"]});
         toast.success("Price Range deleted successfully");
       },
       onError: (error: any) => {
@@ -56,6 +47,12 @@ const page = () => {
       });
     }
   };
+
+  if (error !== null) {
+    toast.error(error.message, {
+            position: "top-right",
+          });
+  }
 
   if (isLoading) {
     return <p>Loading</p>;

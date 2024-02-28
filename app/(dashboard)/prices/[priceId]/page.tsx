@@ -43,33 +43,19 @@ const page = ({ params: { priceId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isPriceLoading } = useQuery(
-    ["getPrice", priceId],
-    () => getPriceFn(priceId, token),
+  const { isLoading: isPriceLoading, data, isSuccess } = useQuery(
     {
+      queryKey: ["getPrice", priceId],
+      queryFn: () => getPriceFn(priceId, token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            range_name: data.range_name,
-            range_from: data.range_from.toString(),
-            range_to: data.range_to.toString(),
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updatePrice } = useMutation(
-    ({
+  const { isPending, mutate: updatePrice } = useMutation(
+    
+    {
+      mutationFn: ({
       id,
       price,
       accessToken,
@@ -78,9 +64,8 @@ const page = ({ params: { priceId } }: PageProps) => {
       price: IUpdatePrice;
       accessToken: string;
     }) => updatePriceFn({ id, price, accessToken }),
-    {
       onSuccess: () => {
-        queryClient.invalidateQueries(["prices"]);
+        queryClient.invalidateQueries({queryKey:["prices"]});
         toast.success("Price updated successfully");
       },
       onError: (error: any) => {
@@ -96,6 +81,14 @@ const page = ({ params: { priceId } }: PageProps) => {
   const methods = useForm<IUpdatePrice>({
     resolver: zodResolver(updatePriceSchema),
   });
+
+  if (isSuccess) {
+    methods.reset({
+            range_name: data.range_name,
+            range_from: data.range_from.toString(),
+            range_to: data.range_to.toString(),
+          });
+  }
 
   if (isPriceLoading) {
     return <p>Loading...</p>;
@@ -137,7 +130,7 @@ const page = ({ params: { priceId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

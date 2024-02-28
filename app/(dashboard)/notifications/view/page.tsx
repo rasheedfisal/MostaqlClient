@@ -14,12 +14,12 @@ const page = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const { isLoading, mutate: updateRead } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      updateReadNotification({ id, accessToken }),
+  const { mutate: updateRead } = useMutation(
     {
+      mutationFn:  ({ id, accessToken }: { id: string; accessToken: string }) =>
+      updateReadNotification({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["notifications"]);
+        queryClient.invalidateQueries({queryKey:["notifications"]});
       },
       onError: (error: any) => {
         if ((error as any).response?.data?.msg) {

@@ -43,17 +43,15 @@ const page = ({ params: { roleId } }: PageProps) => {
       {
         queryKey: ["userRolePermissions"],
         queryFn: () => getRolePermissionFn(roleId, token),
-        staleTime: 0,
-        cacheTime: 0,
       },
     ],
   });
 
-  const { isLoading: isPermessionLoading, mutate: createRolePermission } =
+  const { isPending: isPermessionLoading, mutate: createRolePermission } =
     useMutation(
-      (rolePermissions: AddRolePermissions) =>
-        addPermissionsToRoleFn(rolePermissions, roleId, token),
       {
+        mutationFn: (rolePermissions: AddRolePermissions) =>
+        addPermissionsToRoleFn(rolePermissions, roleId, token),
         onSuccess: (data) => {
           toast.success("Role Permissions Updated successfully");
           router.push("/roles");

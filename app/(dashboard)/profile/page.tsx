@@ -53,25 +53,21 @@ const page = () => {
     setImg(stateContext.state.authUser?.imgPath ?? "/noImg.jpg");
   }, [stateContext.state]);
 
-  const { isFetching: isUserDataLoading } = useQuery(
-    ["authUser", 1200],
-    () => getMeFn(token),
+  const { isFetching: isUserDataLoading, isSuccess, data } = useQuery(
     {
+      queryKey: ["authUser"],
+      queryFn: () => getMeFn(token),
       enabled: enableQuery,
       select: (data) => data,
-      retry: 1,
-      // staleTime: Infinity,
-      onSuccess: (data) => {
-        stateContext.dispatch({ type: "SET_USER", payload: data });
-        toast.success("Profile updated successfully");
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateUser } = useMutation(
-    ({ formData, accessToken }: { formData: FormData; accessToken: string }) =>
-      updateAdminProfileFn({ formData, accessToken }),
+  const { isPending, mutate: updateUser } = useMutation(
+   
     {
+      mutationFn:  ({ formData, accessToken }: { formData: FormData; accessToken: string }) =>
+      updateAdminProfileFn({ formData, accessToken }),
       onSuccess: () => {
         setEnableQuery(true);
       },
@@ -109,6 +105,11 @@ const page = () => {
     }
     updateUser({ formData, accessToken: token });
   };
+
+  if (isSuccess) {
+     stateContext.dispatch({ type: "SET_USER", payload: data });
+        toast.success("Profile updated successfully");
+  }
 
   return (
     <>
@@ -172,7 +173,7 @@ const page = () => {
                 <div className="flex">
                   <SubmitButton
                     title="Update"
-                    clicked={isLoading || isUserDataLoading}
+                    clicked={isPending || isUserDataLoading}
                     loadingTitle="loading..."
                     icon={<DocumentPlusIcon className="h-5 w-5" />}
                   />
