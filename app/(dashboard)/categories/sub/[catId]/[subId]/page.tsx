@@ -35,31 +35,18 @@ const page = ({ params: { catId, subId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isPriceLoading } = useQuery(
-    ["getSubCat", subId],
-    () => getSubCategoryFn(subId, token),
+  const { isLoading: isPriceLoading, data, isSuccess, isError, error } = useQuery(
     {
+      queryKey: ["getSubCat", subId],
+      queryFn: () => getSubCategoryFn(subId, token),
       select: (data) => data,
       retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            name: data.name,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
     }
   );
 
-  const { isLoading, mutate: updateSubCat } = useMutation(
-    ({
+  const { isPending, mutate: updateSubCat } = useMutation(
+    {
+      mutationFn:  ({
       id,
       data,
       accessToken,
@@ -68,9 +55,8 @@ const page = ({ params: { catId, subId } }: PageProps) => {
       data: IUpdateSubCat;
       accessToken: string;
     }) => updateSubCategoryFn({ id, data, accessToken }),
-    {
       onSuccess: () => {
-        queryClient.invalidateQueries(["subcategories", catId]);
+        queryClient.invalidateQueries({queryKey:["subcategories", catId]});
         toast.success("Sub Categories updated successfully");
       },
       onError: (error: any) => {
@@ -86,6 +72,22 @@ const page = ({ params: { catId, subId } }: PageProps) => {
   const methods = useForm<IUpdateSubCat>({
     resolver: zodResolver(updateSubCatSchema),
   });
+
+  if (data) 
+  {
+    methods.reset({
+      name: data.name,
+    });
+  }
+
+  if (isError) {
+    if (error) 
+    {
+      toast.error(error.message, {
+        position: "top-right",
+      });
+    }
+  }
 
   if (isPriceLoading) {
     return <p>Loading...</p>;
@@ -123,7 +125,7 @@ const page = ({ params: { catId, subId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

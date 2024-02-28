@@ -36,10 +36,4 @@ module.exports = {
   //     },
   //   ],
   // },
-  reactStrictMode: true,
-
-  // basePath: "/auth/login",
-  experimental: {
-    appDir: true,
-  },
 };

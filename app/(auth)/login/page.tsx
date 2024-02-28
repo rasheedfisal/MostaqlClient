@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { object, string, TypeOf } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
@@ -15,6 +14,7 @@ import FormInput2 from "../../../components/FormInput2";
 import SubmitButton from "../../../components/SubmitButton";
 import Cookies from "js-cookie";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
+import { object, string, TypeOf } from "zod";
 
 const loginSchema = object({
   email: string()
@@ -40,28 +40,35 @@ const login = () => {
   const stateContext = useStateContext();
 
   // API Get Current Logged-in user
-  const { isFetching: isUserDataLoading } = useQuery(
-    ["authUser", 1200],
-    () => getMeFn(useToken),
+  const { isFetching: isUserDataLoading, isSuccess, data } = useQuery(
     {
+      queryKey: ["authUser"],
+      queryFn: () => getMeFn(useToken),
       enabled: enableQuery,
       select: (data) => data,
       retry: 1,
-      // staleTime: Infinity,
-      onSuccess: (data) => {
-        stateContext.dispatch({ type: "SET_USER", payload: data });
+      // onSuccess: (data) => {
+      //   stateContext.dispatch({ type: "SET_USER", payload: data });
+      //   toast.success("You successfully logged in");
+      //   Cookies.set("loggedin", "true");
+      //   // stateContext.socketState.socket?.emit("addUser", data?.email);
+      //   setTimeout(() => router.push("/home"), 1000);
+      // },
+    }
+  );
+
+  if (isSuccess) {
+      stateContext.dispatch({ type: "SET_USER", payload: data });
         toast.success("You successfully logged in");
         Cookies.set("loggedin", "true");
         // stateContext.socketState.socket?.emit("addUser", data?.email);
         setTimeout(() => router.push("/home"), 1000);
-      },
-    }
-  );
+  }
 
   //  API Login Mutation
-  const { mutate: loginUser, isLoading } = useMutation(
-    (userData: LoginInput) => loginUserFn(userData),
+  const { mutate: loginUser, isPending } = useMutation(
     {
+      mutationFn: (userData: LoginInput) => loginUserFn(userData),
       onSuccess: (data) => {
         setUseToken(data.token);
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
@@ -141,7 +148,7 @@ const login = () => {
             </button> */}
             <SubmitButton
               title="Login"
-              clicked={isLoading || isUserDataLoading}
+              clicked={isPending || isUserDataLoading}
               loadingTitle="loading..."
               icon={
                 <svg

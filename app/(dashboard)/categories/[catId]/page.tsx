@@ -3,7 +3,6 @@ import React from "react";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCategoryFn, updateCategoryFn } from "../../../api/categoryApi";
@@ -26,7 +25,7 @@ type PageProps = {
 const updateCategorySchema = object({
   cat_name: string().min(1, "Name is required"),
   cat_description: string().min(1, "Description is required"),
-  CategoryImg: z.instanceof(File).optional(),
+  CategoryImg: z.custom<File>((v) => v instanceof File).optional(),
 }).partial();
 
 type IUpdateCategory = TypeOf<typeof updateCategorySchema>;
@@ -35,32 +34,20 @@ const page = ({ params: { catId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isCatLoading, data: category } = useQuery(
-    ["getCategory", catId],
-    () => getCategoryFn(catId, token),
+
+  const { isLoading: isCatLoading, data: category, isSuccess, isError, error } = useQuery(
     {
+      queryKey: ["getCategory", catId],
+      queryFn: () => getCategoryFn(catId, token),
       select: (data) => data,
       retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            cat_name: data.cat_name,
-            cat_description: data.cat_description,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
     }
   );
 
-  const { isLoading, mutate: updateCategory } = useMutation(
-    ({
+
+  const { isPending, mutate: updateCategory } = useMutation(
+    {
+      mutationFn: ({
       id,
       formData,
       accessToken,
@@ -69,9 +56,8 @@ const page = ({ params: { catId } }: PageProps) => {
       formData: FormData;
       accessToken: string;
     }) => updateCategoryFn({ id, formData, accessToken }),
-    {
       onSuccess: () => {
-        queryClient.invalidateQueries(["categories"]);
+        queryClient.invalidateQueries({queryKey: ["categories"]});
         toast.success("Category updated successfully");
       },
       onError: (error: any) => {
@@ -87,6 +73,29 @@ const page = ({ params: { catId } }: PageProps) => {
   const methods = useForm<IUpdateCategory>({
     resolver: zodResolver(updateCategorySchema),
   });
+
+
+  
+  if (isSuccess) {
+    if (category) 
+    {
+      methods.reset({
+        cat_name: category.cat_name,
+        cat_description: category.cat_description,
+      });
+    }
+  }
+
+  if (isError) {
+    // if ((error as any).response?.data?.msg) {
+    //       toast.error((error as any).response?.data?.msg, {
+    //         position: "top-right",
+    //       });
+    //     }
+    toast.error(error.message, {
+            position: "top-right",
+          });
+  }
 
   if (isCatLoading) {
     return <p>Loading...</p>;
@@ -147,7 +156,7 @@ const page = ({ params: { catId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

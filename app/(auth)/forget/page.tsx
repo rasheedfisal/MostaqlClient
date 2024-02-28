@@ -1,5 +1,4 @@
 "use client";
-import { object, string, TypeOf } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -11,6 +10,7 @@ import FormInput2 from "../../../components/FormInput2";
 import SubmitButton from "../../../components/SubmitButton";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import Link from "next/link";
+import { object, string, TypeOf } from "zod";
 
 const forgetPasswordSchema = object({
   email: string()
@@ -26,10 +26,10 @@ const page = () => {
     resolver: zodResolver(forgetPasswordSchema),
   });
 
-  const { mutate: verifyEmail, isLoading } = useMutation(
-    (userData: ForgetInput) => verifyEmailFn(userData),
+  const { mutate: verifyEmail, isPending } = useMutation(
     {
-      onSuccess: (data) => {
+      mutationFn: (userData: ForgetInput) => verifyEmailFn(userData),
+      onSuccess: () => {
         toast.success("Success: check your email for verfication link");
       },
       onError: (error: any) => {
@@ -85,7 +85,7 @@ const page = () => {
           <div>
             <SubmitButton
               title="Confirm"
-              clicked={isLoading}
+              clicked={isPending}
               loadingTitle="loading..."
               icon={
                 <svg

@@ -1,13 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   getAllCredentialUsersFn,
   authorizeUnAuthorizeUserFn,
 } from "../../api/usersApi";
 import useAccessToken from "../../../hooks/useAccessToken";
-import ActiveStatusBadge from "../../../components/ActiveStatusBadge";
 import TableLoader from "../../../components/TableLoader";
 import ReactPaginate from "react-paginate";
 import { useState } from "react";
@@ -25,58 +24,60 @@ const page = () => {
   const {
     isLoading,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
     data: users,
+    isSuccess,
+    error
   } = useQuery(
-    ["credentailsusers", pageNumber, pageSize],
-    () => getAllCredentialUsersFn(token, pageNumber, pageSize),
+    
+    
     {
+      queryKey: ["credentailsusers", pageNumber, pageSize],
+      queryFn: () => getAllCredentialUsersFn(token, pageNumber, pageSize),
       select: (data) => data,
       retry: 1,
-      // staleTime: 0,
-      // cacheTime: 0,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData
     }
   );
 
+  if (isSuccess) {
+    if (users?.totalItems) {
+      setRecords(users.totalItems);
+      }
+      if (users?.currentPage) {
+        setPageNumber(users.currentPage);
+      }
+      if (users?.totalPages) {
+        setPages(users.totalPages);
+      }
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {
+            position: "top-right",
+          });
+  }
+
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       users?.results.length !== undefined &&
       users?.results.length > 0
     ) {
       queryClient.prefetchQuery(
-        ["credentailsusers", pageNumber, pageSize],
-        () => getAllCredentialUsersFn(token, pageNumber, pageSize)
+        {queryKey:["credentailsusers", pageNumber, pageSize], queryFn: () => getAllCredentialUsersFn(token, pageNumber, pageSize)}
       );
     }
-  }, [users, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [users, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isLoading: isLocking, mutate: authorizeUnAuthorizeUser } =
+  const { isPending: isLocking, mutate: authorizeUnAuthorizeUser } =
     useMutation(
-      ({ id, accessToken }: { id: string; accessToken: string }) =>
-        authorizeUnAuthorizeUserFn({ id, accessToken }),
+      
       {
+        mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        authorizeUnAuthorizeUserFn({ id, accessToken }),
         onSuccess: () => {
-          queryClient.invalidateQueries(["credentailsusers"]);
+          queryClient.invalidateQueries({queryKey:["credentailsusers"]});
           toast.success("User Status Changed successfully");
         },
         onError: (error: any) => {

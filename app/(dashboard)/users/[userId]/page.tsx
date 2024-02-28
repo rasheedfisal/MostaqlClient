@@ -34,7 +34,7 @@ const updateUserSchema = object({
     label: z.string(),
     value: z.string(),
   }),
-  profileImage: z.instanceof(File).optional(),
+  profileImage: z.custom<File>((v) => v instanceof File).optional(),
   password: string().optional(),
 }).partial();
 

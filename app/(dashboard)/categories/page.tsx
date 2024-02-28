@@ -11,28 +11,28 @@ import TableLoader from "../../../components/TableLoader";
 const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
-  const { isLoading, data: categories } = useQuery(
-    ["categories"],
-    () => getAllCategoriesFn(token),
+  const { isLoading, data: categories, error } = useQuery(
     {
+      queryKey: ["categories"],
+      queryFn: () => getAllCategoriesFn(token),
       select: (data) => data,
-      retry: 1,
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading: isDeleteing, mutate: deleteCategory } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteCategoryFn({ id, accessToken }),
+  if (error !== null) {
+    toast.error(error.message, {
+            position: "top-right",
+          });
+  }
+
+  const { isPending: isDeleteing, mutate: deleteCategory } = useMutation(
+    
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+      deleteCategoryFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["categories"]);
+        queryClient.invalidateQueries({queryKey:["categories"]});
         toast.success("Category deleted successfully");
       },
       onError: (error: any) => {

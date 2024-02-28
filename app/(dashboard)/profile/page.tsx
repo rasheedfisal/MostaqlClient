@@ -1,5 +1,5 @@
 "use client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import useAccessToken from "../../../hooks/useAccessToken";
 import { toast } from "react-toastify";
 import { updateAdminProfileFn } from "../../api/usersApi";
@@ -13,7 +13,6 @@ import SubmitButton from "../../../components/SubmitButton";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import { useState } from "react";
-import { IUser } from "../../../typings";
 import { getMeFn } from "../../api/authApi";
 
 const updateUserSchema = object({
@@ -22,7 +21,7 @@ const updateUserSchema = object({
     .min(1, "Email address is required")
     .email("Email Address is invalid"),
   phone: string().min(1, "Phone is required"),
-  profileImage: z.instanceof(File).optional(),
+  profileImage: z.custom<File>((v) => v instanceof File).optional(),
   password: string().optional(),
 }).partial();
 

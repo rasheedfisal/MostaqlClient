@@ -32,9 +32,9 @@ const page = ({ params: { userId, resetId } }: PageProps) => {
     resolver: zodResolver(forgetPasswordSchema),
   });
 
-  const { mutate: forgetPassword, isLoading } = useMutation(
-    (userData: IResetPassword) => resetPasswordFn(userData),
+  const { mutate: forgetPassword, isPending } = useMutation(
     {
+      mutationFn:  (userData: IResetPassword) => resetPasswordFn(userData),
       onSuccess: (data) => {
         toast.success("Success: password changed");
       },
@@ -85,7 +85,7 @@ const page = ({ params: { userId, resetId } }: PageProps) => {
           <div>
             <SubmitButton
               title="Reset"
-              clicked={isLoading}
+              clicked={isPending}
               loadingTitle="loading..."
               icon={
                 <svg

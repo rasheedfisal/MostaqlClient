@@ -31,33 +31,22 @@ const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isItemsLoading } = useQuery(
-    ["getCreditCard"],
-    () => getCreditCardFn(token),
+  const { isLoading: isItemsLoading, isSuccess, error, data } = useQuery(
     {
+      queryKey: ["getCreditCard"],
+      queryFn: () => getCreditCardFn(token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          setCardState((prev) => ({ ...prev, ...data }));
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateItem } = useMutation(
-    ({ data, accessToken }: { data: ICard; accessToken: string }) =>
-      updateCreditCardFn({ data, accessToken }),
+  const { isPending, mutate: updateItem } = useMutation(
+    
     {
+      mutationFn: ({ data, accessToken }: { data: ICard; accessToken: string }) =>
+      updateCreditCardFn({ data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["getCreditCard"]);
+        queryClient.invalidateQueries({queryKey:["getCreditCard"]});
         toast.success("Credit Card updated successfully");
       },
       onError: (error: any) => {
@@ -113,6 +102,17 @@ const page = () => {
       updateItem({ data: cardState, accessToken: token });
     }
   };
+
+
+   if (isSuccess) {
+    setCardState((prev) => ({ ...prev, ...data }));
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {
+      position: "top-right",
+    });
+  }
 
   if (isItemsLoading) {
     return <p>Loading...</p>;
@@ -284,7 +284,7 @@ const page = () => {
           <div className="relative w-full flex flex-col">
             <SubmitButton
               title="Submit"
-              clicked={isLoading}
+              clicked={isPending}
               loadingTitle="loading..."
               icon={<DocumentPlusIcon className="h-5 w-5" />}
             />

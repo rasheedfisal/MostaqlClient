@@ -32,8 +32,8 @@ type sendMessage = {
 };
 const createMessageSchema = object({
   message: string().optional(),
-  imgAttachment: z.instanceof(File).optional(),
-  fileAttachment: z.instanceof(File).optional(),
+  imgAttachment: z.custom<File>((v) => v instanceof File).optional(),
+  fileAttachment: z.custom<File>((v) => v instanceof File).optional(),
 });
 export type ICreateMessage = TypeOf<typeof createMessageSchema>;
 
@@ -60,20 +60,14 @@ const page = () => {
     isSuccess,
     error: lastError,
   } = useInfiniteQuery(
-    ["lastchat", debouncedSearchQuery],
-    ({ pageParam = 1 }) =>
-      getAllLastChatUsersFn(token, pageParam, debouncedSearchQuery),
     {
+      queryKey: ["lastchat", debouncedSearchQuery],
+      queryFn: ({ pageParam = 1 }) =>
+      getAllLastChatUsersFn(token, pageParam, debouncedSearchQuery),
+      initialPageParam: 0,
       retry: 1,
       getNextPageParam: (lastPage, allPages) => {
         return lastPage.length ? allPages.length + 1 : undefined;
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
       },
     }
   );
@@ -315,40 +309,41 @@ const page = () => {
   }, [fileUrl]);
 
   const {
+    data: previousData,
     fetchPreviousPage, //function
     hasPreviousPage, // boolean
     isFetchingPreviousPage, // boolean
     status,
     error,
+    isSuccess: isPreviousPageSuccess
   } = useInfiniteQuery(
-    ["userchat", currentChat?.id],
-    ({ pageParam = 1 }) =>
-      getAllUsersChatFn(
-        token,
-        { receiver_id: currentChat?.id! },
-        pageParam,
-        10
-      ),
     {
+      queryKey: ["userchat", currentChat?.id?.toString()],
+      queryFn: ({ pageParam = 1 }) =>
+      getAllUsersChatFn(token,{ receiver_id: currentChat?.id! }, pageParam,10),
+      initialPageParam: 0,
       retry: 1,
       enabled: stateContext.chatState.getchat,
+      getNextPageParam: () => {
+        return undefined;
+      },
       getPreviousPageParam: (lastPage, allPages) => {
         return lastPage.length ? allPages.length + 1 : undefined;
       },
-      onSuccess: (data) => {
-        data?.pages.map((pg) => {
-          setChat((prev) => Array.from(new Set([...prev, ...pg])));
-        });
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
     }
   );
+
+  if (isPreviousPageSuccess) {
+    previousData?.pages.map((pg) => {
+        setChat((prev) => Array.from(new Set([...prev, ...pg])));
+    });
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {
+        position: "top-right",
+    });
+  }
 
   if (currentChat === null) {
     return (
@@ -491,7 +486,7 @@ const page = () => {
   if (status === "error")
     return <p className="center">Internal Server Error</p>;
 
-  if (lastError === "error")
+  if (lastError !== null)
     return <p className="center">Internal Server Error</p>;
 
   return (

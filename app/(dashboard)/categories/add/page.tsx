@@ -5,8 +5,7 @@ import Link from "next/link";
 
 import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createUserFn } from "../../../api/usersApi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import FormInput from "../../../../components/FormInput";
 import SubmitButton from "../../../../components/SubmitButton";
@@ -14,16 +13,14 @@ import useAccessToken from "../../../../hooks/useAccessToken";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import { getAllRolesFn } from "../../../api/rolesApi";
 import FileUpLoader from "../../../../components/FileUploader";
-import FormSelect, { ISelectData } from "../../../../components/FormSelect";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 import { createCategoryFn } from "../../../api/categoryApi";
 
 const createUpdateCategorySchema = object({
   cat_name: string().min(1, "Name is required"),
   cat_description: string().min(1, "Description is required"),
-  CategoryImg: z.instanceof(File).optional(),
+  CategoryImg: z.custom<File>((v) => v instanceof File).optional(),
 });
 
 export type ICreateUpdateCategory = TypeOf<typeof createUpdateCategorySchema>;
@@ -31,11 +28,11 @@ const page = () => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createCategory } = useMutation(
-    (category: FormData) => createCategoryFn(category, token),
+  const { isPending, mutate: createCategory } = useMutation(
     {
+      mutationFn: (category: FormData) => createCategoryFn(category, token),
       onSuccess: () => {
-        queryClient.invalidateQueries(["categories"]);
+        queryClient.invalidateQueries({queryKey:["categories"]});
         toast.success("Category created successfully");
       },
       onError: (error: any) => {
@@ -113,7 +110,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

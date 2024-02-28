@@ -45,22 +45,20 @@ const home = () => {
     );
   }, []);
 
-  const { isLoading, data: statistics } = useQuery(
-    ["statistics"],
-    () => getDashboardStatisticsFn(token),
+  const { isLoading, data: statistics, error } = useQuery(
     {
+      queryKey: ["statistics"],
+      queryFn: () => getDashboardStatisticsFn(token),
       select: (data) => data,
-      retry: 1,
-      onError: (error) => {
-        // console.log(error);
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
+
+    if (error !== null) {
+      toast.error(error.message, {
+            position: "top-right",
+          });
+    }
 
   if (isLoading) {
     return <p>Loading...</p>;

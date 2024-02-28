@@ -23,28 +23,20 @@ type PageProps = {
 const page = ({ params: { catId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
-  const { isLoading, data: categories } = useQuery(
-    ["subcategories", catId],
-    () => getAllSubCategoriesFn(token, catId),
-    {
+  const { isLoading, data: categories, error } = useQuery({
+      queryKey: ["subcategories", catId],
+      queryFn: () => getAllSubCategoriesFn(token, catId),
       select: (data) => data,
       retry: 1,
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
     }
   );
 
-  const { isLoading: isDeleteing, mutate: deleteCategory } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteSubCategoryFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deleteCategory } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+      deleteSubCategoryFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["subcategories", catId]);
+        queryClient.invalidateQueries({queryKey:["subcategories", catId]});
         toast.success("Sub Category deleted successfully");
       },
       onError: (error: any) => {
@@ -66,8 +58,14 @@ const page = ({ params: { catId } }: PageProps) => {
     }
   };
 
-  if (isLoading) {
-    return <p>Loading</p>;
+  if (error !== null) {
+    toast.error(error.message, {
+            position: "top-right",
+          });
+  }
+
+  if (isDeleteing) {
+    return <p>Loading...</p>;
   }
 
   return (

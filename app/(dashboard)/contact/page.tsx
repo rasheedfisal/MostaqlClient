@@ -23,37 +23,20 @@ const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isItemsLoading } = useQuery(
-    ["getContact"],
-    () => getContactFn(token),
-    {
+  const { isLoading: isItemsLoading, isSuccess, data, error } = useQuery({
+      queryKey: ["getContact"],
+      queryFn: () => getContactFn(token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            website_link: data.website_link,
-            phone: data.phone,
-            email: data.email,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateItem } = useMutation(
-    ({ data, accessToken }: { data: IUpdsertContact; accessToken: string }) =>
-      updateContactFn({ data, accessToken }),
+  const { isPending, mutate: updateItem } = useMutation(
     {
+      mutationFn:  ({ data, accessToken }: { data: IUpdsertContact; accessToken: string }) =>
+      updateContactFn({ data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["getContact"]);
+        queryClient.invalidateQueries({queryKey:["getContact"]});
         toast.success("Contact updated successfully");
       },
       onError: (error: any) => {
@@ -69,6 +52,20 @@ const page = () => {
   const methods = useForm<IUpdsertContact>({
     resolver: zodResolver(updsertContactSchema),
   });
+
+  if (isSuccess) {
+    methods.reset({
+      website_link: data.website_link,
+      phone: data.phone,
+      email: data.email,
+    });
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {
+      position: "top-right",
+    });
+  }
 
   if (isItemsLoading) {
     return <p>Loading...</p>;
@@ -112,7 +109,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

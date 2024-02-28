@@ -17,6 +17,9 @@ export interface IResetPassword {
 
 export const signUpUserFn = async (user: RegisterInput) => {
   const response = await authApi.post<GenericResponse>("auth/signup", user);
+  if (response.status !== 200) {
+    throw new Error(response?.data?.message)
+  }
   return response.data;
 };
 

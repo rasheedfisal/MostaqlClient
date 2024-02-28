@@ -30,11 +30,11 @@ const Add = ({ params: { catId } }: PageProps) => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createSubCat } = useMutation(
-    (subcat: ICreateSubCat) => createSubCategoryFn(catId, subcat, token),
+  const { isPending, mutate: createSubCat } = useMutation(
     {
+      mutationFn: (subcat: ICreateSubCat) => createSubCategoryFn(catId, subcat, token),
       onSuccess: () => {
-        queryClient.invalidateQueries(["subcategories", catId]);
+        queryClient.invalidateQueries({queryKey:["subcategories", catId]});
         toast.success("Sub Category created successfully");
       },
       onError: (error: any) => {
@@ -93,7 +93,7 @@ const Add = ({ params: { catId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

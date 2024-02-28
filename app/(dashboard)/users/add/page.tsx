@@ -32,7 +32,7 @@ const createUserSchema = object({
     label: z.string(),
     value: z.string(),
   }),
-  profileImage: z.instanceof(File).optional(),
+  profileImage: z.custom<File>((v) => v instanceof File).optional(),
 });
 
 export type ICreateUser = TypeOf<typeof createUserSchema>;

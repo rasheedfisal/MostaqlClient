@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   getAllSenderNotitifcationsFn,
@@ -24,56 +24,39 @@ const page = () => {
   const {
     isLoading,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
     data: notifications,
+    isSuccess,
+    error
   } = useQuery(
-    ["senderNotification", pageNumber, pageSize],
-    () => getAllSenderNotitifcationsFn(token, pageNumber),
     {
+      queryKey: ["senderNotification", pageNumber, pageSize],
+      queryFn: () => getAllSenderNotitifcationsFn(token, pageNumber),
       select: (data) => data,
       retry: 1,
-      // staleTime: 0,
-      // cacheTime: 0,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData
     }
   );
 
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       notifications?.results.length !== undefined &&
       notifications?.results.length > 0
     ) {
-      queryClient.prefetchQuery(["senderNotification", pageNumber], () =>
-        getAllSenderNotitifcationsFn(token, pageNumber)
+      queryClient.prefetchQuery({queryKey:["senderNotification", pageNumber], queryFn:() =>
+        getAllSenderNotitifcationsFn(token, pageNumber)}
       );
     }
-  }, [notifications, pageNumber, isPreviousData, queryClient]);
+  }, [notifications, pageNumber, isPlaceholderData, queryClient]);
 
-  const { isLoading: isDeleteing, mutate: deleteNotification } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteNotificationFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deleteNotification } = useMutation(
+   
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+      deleteNotificationFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["senderNotification"]);
+        queryClient.invalidateQueries({queryKey:["senderNotification"]});
         toast.success("Notification deleted successfully");
       },
       onError: (error: any) => {
@@ -94,6 +77,18 @@ const page = () => {
       });
     }
   };
+
+  if (isSuccess) {
+     if (notifications?.totalItems) {
+          setRecords(notifications.totalItems);
+        }
+        if (notifications?.currentPage) {
+          setPageNumber(notifications.currentPage);
+        }
+        if (notifications?.totalPages) {
+          setPages(notifications.totalPages);
+        }
+  }
 
   if (isLoading) {
     return <p>Loading...</p>;
