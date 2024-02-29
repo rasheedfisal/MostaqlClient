@@ -35,15 +35,11 @@ const page = ({ params: { userId, resetId } }: PageProps) => {
   const { mutate: forgetPassword, isPending } = useMutation(
     {
       mutationFn:  (userData: IResetPassword) => resetPasswordFn(userData),
-      onSuccess: (data) => {
+      onSuccess: () => {
         toast.success("Success: password changed");
       },
       onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );

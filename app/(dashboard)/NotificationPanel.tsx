@@ -29,25 +29,18 @@ function NotificationPanel({
     hasNextPage, // boolean
     isFetchingNextPage, // boolean
     data: items,
-    status,
     isLoading,
     isSuccess,
     error,
   } = useInfiniteQuery(
-    ["notifications"],
-    ({ pageParam = 1 }) => getAllUserNotitifcationsFn(token, pageParam),
     {
+      queryKey: ["notifications"],
+      queryFn: ({ pageParam = 1 }) => getAllUserNotitifcationsFn(token, pageParam),
       retry: 1,
       getNextPageParam: (lastPage, allPages) => {
         return lastPage.length ? allPages.length + 1 : undefined;
       },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      initialPageParam: 0,
     }
   );
   const lastUserRef = useRef<HTMLDivElement>(null);
@@ -57,8 +50,8 @@ function NotificationPanel({
     onIntersect: fetchNextPage,
     enabled: hasNextPage,
   });
-  if (status === "error")
-    return <p className="center">Error: {(error as any).response.data.msg}</p>;
+  if (error !== null)
+    return <p className="center">Error: {error.message}</p>;
 
   const handleSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "32") {

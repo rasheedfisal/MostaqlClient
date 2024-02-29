@@ -39,12 +39,8 @@ const page = ({ params: { catId } }: PageProps) => {
         queryClient.invalidateQueries({queryKey:["subcategories", catId]});
         toast.success("Sub Category deleted successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );

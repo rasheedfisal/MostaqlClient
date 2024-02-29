@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   getAllSupportBoxsFn,
@@ -25,62 +25,42 @@ const page = () => {
   const {
     isLoading,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
     data: items,
+    isSuccess,
+    error
   } = useQuery(
-    ["supportbox", pageNumber, pageSize],
-    () => getAllSupportBoxsFn(token, pageNumber, pageSize),
     {
+      queryKey: ["supportbox", pageNumber, pageSize],
+      queryFn: () => getAllSupportBoxsFn(token, pageNumber, pageSize),
       select: (data) => data,
       retry: 1,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData
     }
   );
 
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       items?.results.length !== undefined &&
       items?.results.length > 0
     ) {
-      queryClient.prefetchQuery(["supportbox", pageNumber, pageSize], () =>
-        getAllSupportBoxsFn(token, pageNumber, pageSize)
+      queryClient.prefetchQuery({queryKey: ["supportbox", pageNumber, pageSize], queryFn: () =>
+        getAllSupportBoxsFn(token, pageNumber, pageSize)}
       );
     }
-  }, [items, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [items, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isLoading: isAccepting, mutate: resolveIssue } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      resolveSupportBoxFn({ id, accessToken }),
+  const { isPending: isAccepting, mutate: resolveIssue } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        resolveSupportBoxFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["supportbox"]);
+        queryClient.invalidateQueries({queryKey:["supportbox"]});
         toast.success("Issue Resolved successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -96,6 +76,22 @@ const page = () => {
 
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+     if (items?.totalItems) {
+          setRecords(items.totalItems);
+        }
+        if (items?.currentPage) {
+          setPageNumber(items.currentPage);
+        }
+        if (items?.totalPages) {
+          setPages(items.totalPages);
+        }
+  }
+
+   if (error !== null) {
+    toast.error(error.message, {position: "top-right"});
   }
 
   return (

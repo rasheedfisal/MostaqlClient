@@ -43,32 +43,24 @@ const Add = () => {
     isLoading: isRolesLoading,
     isSuccess,
     data: roles,
-  } = useQuery(["roles"], () => getAllRolesFn(token), {
+    error
+  } = useQuery({
+    queryKey: ["roles"],
+    queryFn: () => getAllRolesFn(token),
     select: (data) => data,
-    retry: 1,
-    onError: (error) => {
-      if ((error as any).response?.data?.msg) {
-        toast.error((error as any).response?.data?.msg, {
-          position: "top-right",
-        });
-      }
-    },
+    retry: 1
   });
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createUser } = useMutation(
-    (user: FormData) => createUserFn(user, token),
+  const { isPending, mutate: createUser } = useMutation(
     {
+      mutationFn: (user: FormData) => createUserFn(user, token),
       onSuccess: () => {
-        queryClient.invalidateQueries(["users"]);
+        queryClient.invalidateQueries({queryKey: ["users"]});
         toast.success("User created successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -100,6 +92,10 @@ const Add = () => {
     }
     createUser(formData);
   };
+
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"});
+  }
 
   return (
     <>
@@ -159,7 +155,7 @@ const Add = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

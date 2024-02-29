@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import useAccessToken from "../../../hooks/useAccessToken";
 import { getAllProjectsFn } from "../../api/projectsApi";
@@ -27,35 +27,20 @@ const page = () => {
     isLoading,
     data: projects,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
+    isSuccess,
+    error
   } = useQuery(
-    ["projects", pageNumber, pageSize, debouncedSearchQuery],
-    () => getAllProjectsFn(token, pageNumber, pageSize, debouncedSearchQuery),
+    
+    
     {
+      queryKey: ["projects", pageNumber, pageSize, debouncedSearchQuery],
+      queryFn: () => getAllProjectsFn(token, pageNumber, pageSize, debouncedSearchQuery),
       select: (data) => data,
       retry: 1,
       // staleTime: 0,
       // cacheTime: 0,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        // console.log(error);
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData,
     }
   );
 
@@ -70,14 +55,14 @@ const page = () => {
 
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       projects?.results.length !== undefined &&
       projects?.results.length > 0
     ) {
       queryClient.prefetchQuery(
-        ["projects", pageNumber, pageSize, debouncedSearchQuery],
-        () =>
-          getAllProjectsFn(token, pageNumber, pageSize, debouncedSearchQuery)
+        {queryKey:["projects", pageNumber, pageSize, debouncedSearchQuery],
+        queryFn:() =>
+          getAllProjectsFn(token, pageNumber, pageSize, debouncedSearchQuery)}
       );
     }
   }, [
@@ -85,12 +70,28 @@ const page = () => {
     pageNumber,
     pageSize,
     debouncedSearchQuery,
-    isPreviousData,
+    isPlaceholderData,
     queryClient,
   ]);
 
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+    if (projects?.totalItems) {
+          setRecords(projects.totalItems);
+        }
+        if (projects?.currentPage) {
+          setPageNumber(projects.currentPage);
+        }
+        if (projects?.totalPages) {
+          setPages(projects.totalPages);
+        }
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"})
   }
 
   return (

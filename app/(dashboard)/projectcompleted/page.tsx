@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   getAllCompletedProjectRequest,
@@ -29,51 +28,39 @@ const page = () => {
   const {
     isLoading,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
     data: items,
+    isSuccess,
+    error
   } = useQuery(
-    ["completedprojects", pageNumber, pageSize],
-    () => getAllCompletedProjectRequest(token, pageNumber, pageSize),
+    
+    
     {
+      queryKey: ["completedprojects", pageNumber, pageSize],
+      queryFn: () => getAllCompletedProjectRequest(token, pageNumber, pageSize),
       select: (data) => data,
       retry: 1,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData
     }
   );
 
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       items?.results.length !== undefined &&
       items?.results.length > 0
     ) {
       queryClient.prefetchQuery(
-        ["completedprojects", pageNumber, pageSize],
-        () => getAllCompletedProjectRequest(token, pageNumber, pageSize)
+        {queryKey:["completedprojects", pageNumber, pageSize],
+        queryFn:() => getAllCompletedProjectRequest(token, pageNumber, pageSize)}
       );
     }
-  }, [items, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [items, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isLoading: isAccepting, mutate: approveorreject } = useMutation(
-    ({
+  const { isPending: isAccepting, mutate: approveorreject } = useMutation(
+   
+    {
+      mutationFn:  ({
       id,
       accessToken,
       offerId,
@@ -82,23 +69,20 @@ const page = () => {
       accessToken: string;
       offerId: string;
     }) => approveCompleteProjectRequestFn({ id, accessToken, offerId }),
-    {
       onSuccess: () => {
-        queryClient.invalidateQueries(["completedprojects"]);
+        queryClient.invalidateQueries({queryKey:["completedprojects"]});
         toast.success("Status Changed successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
 
-  const { isLoading: isTransfering, mutate: transferMoney } = useMutation(
-    ({
+  const { isPending: isTransfering, mutate: transferMoney } = useMutation(
+   
+    {
+      mutationFn:  ({
       id,
       accessToken,
       offerId,
@@ -107,17 +91,12 @@ const page = () => {
       accessToken: string;
       offerId: string;
     }) => transferCompletedProjectMoneyFn({ id, accessToken, offerId }),
-    {
       onSuccess: () => {
-        queryClient.invalidateQueries(["completedprojects"]);
+        queryClient.invalidateQueries({queryKey:["completedprojects"]});
         toast.success("Money Transfered successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -155,6 +134,22 @@ const page = () => {
 
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+    if (items?.totalItems) {
+          setRecords(items.totalItems);
+        }
+        if (items?.currentPage) {
+          setPageNumber(items.currentPage);
+        }
+        if (items?.totalPages) {
+          setPages(items.totalPages);
+        }
+  }
+
+   if (error !== null) {
+    toast.error(error.message, {position: "top-right"})
   }
 
   return (

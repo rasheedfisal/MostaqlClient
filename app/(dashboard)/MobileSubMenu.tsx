@@ -1,12 +1,9 @@
 "use client";
-import { Cycle, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import React, {
   KeyboardEventHandler,
   MouseEventHandler,
-  useState,
 } from "react";
-import Image from "next/image";
-import avatar from "../../public/avatar.jpg";
 import { useMutation } from "@tanstack/react-query";
 import { logoutUserFn } from "../api/authApi";
 import { useRouter } from "next/navigation";
@@ -41,7 +38,8 @@ const MobileSubMenu = ({
   const router = useRouter();
   const stateContext = useStateContext();
 
-  const { mutate: logoutUser, isLoading } = useMutation(() => logoutUserFn(), {
+  const { mutate: logoutUser, isPending } = useMutation( {
+    mutationFn: () => logoutUserFn(),
     onSuccess: () => {
       stateContext.tokenDispatch({ type: "SET_Token", payload: null });
       toast.success("You successfully logged out");
@@ -283,7 +281,7 @@ const MobileSubMenu = ({
               role="menuitem"
               className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-light dark:hover:bg-primary cursor-pointer"
             >
-              {isLoading ? (
+              {isPending ? (
                 <svg
                   className="w-6 h-6 mr-3 -ml-1 animate-spin"
                   xmlns="http://www.w3.org/2000/svg"

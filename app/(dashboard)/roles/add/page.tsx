@@ -27,19 +27,15 @@ const Add = () => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createRole } = useMutation(
-    (role: ICreateUpdateRole) => createRoleFn(role, token),
+  const { isPending, mutate: createRole } = useMutation(
     {
+      mutationFn: (role: ICreateUpdateRole) => createRoleFn(role, token),
       onSuccess: () => {
-        queryClient.invalidateQueries(["roles"]);
+        queryClient.invalidateQueries({queryKey:["roles"]});
         toast.success("Role created successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -95,7 +91,7 @@ const Add = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

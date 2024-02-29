@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   deleteRateFn,
@@ -25,62 +25,42 @@ const page = () => {
   const {
     isLoading,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
     data: items,
+    isSuccess,
+    error
   } = useQuery(
-    ["rates", pageNumber, pageSize],
-    () => getAllCommissionRatesFn(token, pageNumber, pageSize),
     {
+      queryKey:["rates", pageNumber, pageSize],
+      queryFn: () => getAllCommissionRatesFn(token, pageNumber, pageSize),
       select: (data) => data,
       retry: 1,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData
     }
   );
 
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       items?.results.length !== undefined &&
       items?.results.length > 0
     ) {
-      queryClient.prefetchQuery(["rates", pageNumber, pageSize], () =>
-        getAllCommissionRatesFn(token, pageNumber, pageSize)
+      queryClient.prefetchQuery({queryKey:["rates", pageNumber, pageSize], queryFn: () =>
+        getAllCommissionRatesFn(token, pageNumber, pageSize)}
       );
     }
-  }, [items, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [items, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isLoading: isDeleteing, mutate: deleteRate } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteRateFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deleteRate } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        deleteRateFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["rates"]);
+        queryClient.invalidateQueries({queryKey: ["rates"]});
         toast.success("Rate deleted successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -95,6 +75,22 @@ const page = () => {
 
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+     if (items?.totalItems) {
+          setRecords(items.totalItems);
+        }
+        if (items?.currentPage) {
+          setPageNumber(items.currentPage);
+        }
+        if (items?.totalPages) {
+          setPages(items.totalPages);
+        }
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"})
   }
 
   return (

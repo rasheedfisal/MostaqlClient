@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { object, string, TypeOf, z } from "zod";
@@ -25,43 +26,25 @@ const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isItemsLoading } = useQuery(
-    ["getWithdraw"],
-    () => getWithdrawbleFn(token),
+  const { isLoading: isItemsLoading, data, isSuccess, error } = useQuery(
     {
+      queryKey: ["getWithdraw"],
+      queryFn: () => getWithdrawbleFn(token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            amount: data.amount.toString(),
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateItem } = useMutation(
-    ({ data, accessToken }: { data: IUpdsertWithdraw; accessToken: string }) =>
-      updateWithdrawbleFn({ data, accessToken }),
+  const { isPending, mutate: updateItem } = useMutation(
     {
+      mutationFn: ({ data, accessToken }: { data: IUpdsertWithdraw; accessToken: string }) =>
+        updateWithdrawbleFn({ data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["getWithdraw"]);
+        queryClient.invalidateQueries({queryKey: ["getWithdraw"]});
         toast.success("Minimum Withdrawable updated successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -72,6 +55,16 @@ const page = () => {
 
   if (isItemsLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+     methods.reset({
+            amount: data.amount.toString(),
+          });
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"});
   }
 
   const onSubmitHandler: SubmitHandler<IUpdsertWithdraw> = (values) => {
@@ -106,7 +99,7 @@ const page = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

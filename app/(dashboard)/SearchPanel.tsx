@@ -26,26 +26,19 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     hasNextPage, // boolean
     isFetchingNextPage, // boolean
     data: items,
-    status,
     isLoading,
     isSuccess,
     error,
   } = useInfiniteQuery(
-    ["findUsers", debouncedSearchQuery],
-    ({ pageParam = 1 }) =>
-      getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
     {
+      queryKey: ["findUsers", debouncedSearchQuery],
+      queryFn: ({ pageParam = 1 }) =>
+        getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
       retry: 1,
       getNextPageParam: (lastPage, allPages) => {
         return lastPage.length ? allPages.length + 1 : undefined;
       },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      initialPageParam: 0
     }
   );
   const lastUserRef = useRef<HTMLDivElement>(null);
@@ -55,8 +48,8 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     onIntersect: fetchNextPage,
     enabled: hasNextPage,
   });
-  if (status === "error")
-    return <p className="center">Error: {(error as any).response.data.msg}</p>;
+  if (error !== null)
+    return <p className="center">Error: {error.message}</p>;
 
   const handleSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "32") {

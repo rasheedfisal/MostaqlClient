@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import PageLoader from "../../components/PageLoader";
 import { useStateContext } from "../../context/AppConext";
 
 import useRefreshToken from "../../hooks/useRefreshToken";

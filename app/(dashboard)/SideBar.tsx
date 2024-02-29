@@ -1,5 +1,5 @@
 "use client";
-import { ShieldExclamationIcon } from "@heroicons/react/24/solid";
+
 import { motion } from "framer-motion";
 import Link from "next/link";
 import React, { MouseEventHandler } from "react";

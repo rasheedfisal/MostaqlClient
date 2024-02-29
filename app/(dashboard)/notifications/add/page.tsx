@@ -43,12 +43,8 @@ const page = () => {
         queryClient.invalidateQueries({queryKey:["senderNotification"]});
         toast.success("Notification created successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import useAccessToken from "../../../hooks/useAccessToken";
-import PageLoader from "../../../components/PageLoader";
 import { deleteRoleFn, getAllRolesFn } from "../../api/rolesApi";
 import EditIcon from "../../../icons/EditIcon";
 import DeleteIcon from "../../../icons/DeleteIcon";
@@ -12,37 +11,25 @@ import TableLoader from "../../../components/TableLoader";
 const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
-  const { isLoading, data: roles } = useQuery(
-    ["roles"],
-    () => getAllRolesFn(token),
+  const { isLoading, data: roles, error } = useQuery(
     {
+      queryKey: ["roles"],
+      queryFn: () => getAllRolesFn(token),
       select: (data) => data,
-      retry: 1,
-      onError: (error) => {
-        // console.log(error);
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading: isDeleteing, mutate: deleteRole } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteRoleFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deleteRole } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        deleteRoleFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["roles"]);
+        queryClient.invalidateQueries({queryKey:["roles"]});
         toast.success("Role deleted successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );

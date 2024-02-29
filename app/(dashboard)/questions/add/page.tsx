@@ -33,19 +33,15 @@ const Add = () => {
   const token = useAccessToken();
 
   const queryClient = useQueryClient();
-  const { isLoading, mutate: createQuestion } = useMutation(
-    (question: ICreateQuestion) => createQuestionFn(question, token),
+  const { isPending, mutate: createQuestion, isSuccess } = useMutation(
     {
+      mutationFn: (question: ICreateQuestion) => createQuestionFn(question, token),
       onSuccess: () => {
-        queryClient.invalidateQueries(["questions"]);
+        queryClient.invalidateQueries({queryKey:["questions"]});
         toast.success("Question created successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -102,7 +98,7 @@ const Add = () => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

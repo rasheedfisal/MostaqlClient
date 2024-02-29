@@ -32,51 +32,32 @@ const page = ({ params: { roleId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isPriceLoading } = useQuery(
-    ["getRole", roleId],
-    () => getRoleFn(roleId, token),
+  const { isLoading: isPriceLoading, data, isSuccess, error } = useQuery(
     {
+      queryKey: ["getRole", roleId],
+      queryFn: () => getRoleFn(roleId, token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            role_name: data.role_name,
-            role_description: data.role_description,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateRole } = useMutation(
-    ({
-      id,
-      data,
-      accessToken,
-    }: {
-      id: string;
-      data: IUpdateRole;
-      accessToken: string;
-    }) => updateRoleFn({ id, data, accessToken }),
+  const { isPending, mutate: updateRole } = useMutation(
     {
+      mutationFn: ({
+        id,
+        data,
+        accessToken,
+      }: {
+        id: string;
+        data: IUpdateRole;
+        accessToken: string;
+      }) => updateRoleFn({ id, data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["roles"]);
+        queryClient.invalidateQueries({queryKey:["roles"]});
         toast.success("Role updated successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -87,6 +68,16 @@ const page = ({ params: { roleId } }: PageProps) => {
 
   if (isPriceLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+     methods.reset({
+            role_name: data.role_name,
+            role_description: data.role_description,
+          });
+  }
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"});
   }
 
   const onSubmitHandler: SubmitHandler<IUpdateRole> = (values) => {
@@ -126,7 +117,7 @@ const page = ({ params: { roleId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

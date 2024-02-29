@@ -38,51 +38,32 @@ const page = ({ params: { rateId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isPriceLoading } = useQuery(
-    ["getrate", rateId],
-    () => getRateFn(rateId, token),
+  const { isLoading: isPriceLoading, data, isSuccess, error } = useQuery(
     {
+      queryKey: ["getrate", rateId],
+      queryFn: () => getRateFn(rateId, token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            ratepercent: data.ratepercent.toString(),
-            iscurrent: data.iscurrent,
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateRate } = useMutation(
-    ({
-      id,
-      rate,
-      accessToken,
-    }: {
-      id: string;
-      rate: IUpdateRate;
-      accessToken: string;
-    }) => updateRateFn({ id, rate, accessToken }),
+  const { isPending, mutate: updateRate } = useMutation(
     {
+      mutationFn: ({
+        id,
+        rate,
+        accessToken,
+      }: {
+        id: string;
+        rate: IUpdateRate;
+        accessToken: string;
+      }) => updateRateFn({ id, rate, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["rates"]);
+        queryClient.invalidateQueries({queryKey: ["rates"]});
         toast.success("Rate updated successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -93,6 +74,17 @@ const page = ({ params: { rateId } }: PageProps) => {
 
   if (isPriceLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+    methods.reset({
+            ratepercent: data.ratepercent.toString(),
+            iscurrent: data.iscurrent,
+          });
+  }
+
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"})
   }
 
   const onSubmitHandler: SubmitHandler<IUpdateRate> = (values) => {
@@ -130,7 +122,7 @@ const page = ({ params: { rateId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

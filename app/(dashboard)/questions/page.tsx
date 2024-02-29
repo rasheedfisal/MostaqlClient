@@ -11,37 +11,25 @@ import TableLoader from "../../../components/TableLoader";
 const page = () => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
-  const { isLoading, data: questions } = useQuery(
-    ["questions"],
-    () => getAllQuestionsFn(token),
+  const { isLoading, data: questions, error } = useQuery(   
     {
+      queryKey: ["questions"],
+      queryFn: () => getAllQuestionsFn(token),
       select: (data) => data,
-      retry: 1,
-      onError: (error) => {
-        // console.log(error);
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading: isDeleteing, mutate: deleteQuestion } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteQuestionFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deleteQuestion } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        deleteQuestionFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["questions"]);
+        queryClient.invalidateQueries({queryKey:["questions"]});
         toast.success("Question deleted successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -57,6 +45,9 @@ const page = () => {
 
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+  if (error !== null) {
+    toast.error(error.message, {position: "top-right"})
   }
 
   return (

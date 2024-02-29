@@ -39,12 +39,8 @@ const page = () => {
         queryClient.invalidateQueries({queryKey: ["getPaypal"]});
         toast.success("Paypal Account updated successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );

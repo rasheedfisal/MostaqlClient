@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   deleteUserFn,
@@ -28,81 +28,55 @@ const ManageUsers = () => {
   const {
     isLoading,
     isFetching,
-    isPreviousData,
+    isPlaceholderData,
     data: users,
+    isSuccess,
+    error
   } = useQuery(
-    ["users", pageNumber, pageSize],
-    () => getAllUsersFn(token, pageNumber, pageSize),
     {
+      queryKey: ["users", pageNumber, pageSize],
+      queryFn: () => getAllUsersFn(token, pageNumber, pageSize),
       select: (data) => data,
       retry: 1,
-      // staleTime: 0,
-      // cacheTime: 0,
-      keepPreviousData: true,
-      onSuccess: (e) => {
-        if (e?.totalItems) {
-          setRecords(e.totalItems);
-        }
-        if (e?.currentPage) {
-          setPageNumber(e.currentPage);
-        }
-        if (e?.totalPages) {
-          setPages(e.totalPages);
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      placeholderData: keepPreviousData
     }
   );
 
   useUpdateEffect(() => {
     if (
-      !isPreviousData &&
+      !isPlaceholderData &&
       users?.results.length !== undefined &&
       users?.results.length > 0
     ) {
-      queryClient.prefetchQuery(["users", pageNumber, pageSize], () =>
-        getAllUsersFn(token, pageNumber, pageSize)
+      queryClient.prefetchQuery({queryKey:["users", pageNumber, pageSize], queryFn: () =>
+        getAllUsersFn(token, pageNumber, pageSize)}
       );
     }
-  }, [users, pageNumber, pageSize, isPreviousData, queryClient]);
+  }, [users, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isLoading: isDeleteing, mutate: deleteUser } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      deleteUserFn({ id, accessToken }),
+  const { isPending: isDeleteing, mutate: deleteUser } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        deleteUserFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["users"]);
+        queryClient.invalidateQueries({queryKey:["users"]});
         toast.success("User deleted successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
-  const { isLoading: isLocking, mutate: lockUnlockUser } = useMutation(
-    ({ id, accessToken }: { id: string; accessToken: string }) =>
-      lockUnlockUserFn({ id, accessToken }),
+  const { isPending: isLocking, mutate: lockUnlockUser } = useMutation(
     {
+      mutationFn: ({ id, accessToken }: { id: string; accessToken: string }) =>
+        lockUnlockUserFn({ id, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["users"]);
+        queryClient.invalidateQueries({queryKey: ["users"]});
         toast.success("User Status Changed successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -126,6 +100,22 @@ const ManageUsers = () => {
 
   if (isLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+     if (users?.totalItems) {
+          setRecords(users.totalItems);
+        }
+        if (users?.currentPage) {
+          setPageNumber(users.currentPage);
+        }
+        if (users?.totalPages) {
+          setPages(users.totalPages);
+        }
+  }
+
+   if (error !== null) {
+    toast.error(error.message, {position: "top-right"});
   }
 
   return (

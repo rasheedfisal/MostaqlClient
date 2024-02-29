@@ -48,68 +48,40 @@ const page = ({ params: { userId } }: PageProps) => {
     isLoading: isRolesLoading,
     isSuccess,
     data: roles,
-  } = useQuery(["roles"], () => getAllRolesFn(token), {
+    error
+  } = useQuery( {
+    queryKey: ["roles"],
+    queryFn: () => getAllRolesFn(token),
     select: (data) => data,
-    retry: 1,
-    onError: (error) => {
-      if ((error as any).response?.data?.msg) {
-        toast.error((error as any).response?.data?.msg, {
-          position: "top-right",
-        });
-      }
-    },
+    retry: 1
   });
 
-  const { isLoading: isUserLoading, data: getUser } = useQuery(
-    ["getUser", userId],
-    () => getUserFn(userId, token),
+  const { isLoading: isUserLoading, data: getUser , isSuccess: isUserSuccessfull} = useQuery(
     {
+      queryKey: ["getUser", userId],
+      queryFn: () => getUserFn(userId, token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            fullname: data.fullname,
-            email: data.email,
-            phone: data.phone,
-            role: {
-              label: data.Role?.role_name,
-              value: data.Role?.id,
-            },
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateUser } = useMutation(
-    ({
-      id,
-      formData,
-      accessToken,
-    }: {
-      id: string;
-      formData: FormData;
-      accessToken: string;
-    }) => updateUserFn({ id, formData, accessToken }),
+  const { isPending, mutate: updateUser } = useMutation(
     {
+      mutationFn: ({
+        id,
+        formData,
+        accessToken,
+      }: {
+        id: string;
+        formData: FormData;
+        accessToken: string;
+      }) => updateUserFn({ id, formData, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["users"]);
+        queryClient.invalidateQueries({queryKey: ["users"]});
         toast.success("User updated successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+         toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -120,6 +92,22 @@ const page = ({ params: { userId } }: PageProps) => {
 
   if (isUserLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isUserSuccessfull) {
+     methods.reset({
+            fullname: getUser.fullname,
+            email: getUser.email,
+            phone: getUser.phone,
+            role: {
+              label: getUser.Role?.role_name,
+              value: getUser.Role?.id,
+            },
+          });
+  }
+
+   if (error !== null) {
+    toast.error(error.message, {position: "top-right"});
   }
 
   const onSubmitHandler: SubmitHandler<IUpdateUser> = (values) => {
@@ -203,7 +191,7 @@ const page = ({ params: { userId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

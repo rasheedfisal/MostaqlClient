@@ -39,52 +39,32 @@ const page = ({ params: { qId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isDataLoading } = useQuery(
-    ["getQuestion", qId],
-    () => getQuestionFn(qId, token),
+  const { isLoading: isDataLoading, data, isSuccess, error } = useQuery(
     {
+      queryKey:["getQuestion", qId],
+      queryFn: () => getQuestionFn(qId, token),
       select: (data) => data,
-      retry: 1,
-      onSuccess: (data) => {
-        if (data) {
-          methods.reset({
-            question: data.question,
-            answer: data.answer,
-            order_no: data.order_no.toString(),
-          });
-        }
-      },
-      onError: (error) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
-      },
+      retry: 1
     }
   );
 
-  const { isLoading, mutate: updateQuestion } = useMutation(
-    ({
-      id,
-      data,
-      accessToken,
-    }: {
-      id: string;
-      data: IUpdateQuestion;
-      accessToken: string;
-    }) => updateQuestionFn({ id, data, accessToken }),
+  const { isPending, mutate: updateQuestion } = useMutation(
     {
+      mutationFn: ({
+        id,
+        data,
+        accessToken,
+      }: {
+        id: string;
+        data: IUpdateQuestion;
+        accessToken: string;
+      }) => updateQuestionFn({ id, data, accessToken }),
       onSuccess: () => {
-        queryClient.invalidateQueries(["questions"]);
+        queryClient.invalidateQueries({queryKey: ["questions"]});
         toast.success("Question updated successfully");
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -95,6 +75,14 @@ const page = ({ params: { qId } }: PageProps) => {
 
   if (isDataLoading) {
     return <p>Loading...</p>;
+  }
+
+  if (isSuccess) {
+    methods.reset({
+            question: data.question,
+            answer: data.answer,
+            order_no: data.order_no.toString(),
+          });
   }
 
   const onSubmitHandler: SubmitHandler<IUpdateQuestion> = (values) => {
@@ -135,7 +123,7 @@ const page = ({ params: { qId } }: PageProps) => {
               <div className="flex">
                 <SubmitButton
                   title="Submit"
-                  clicked={isLoading}
+                  clicked={isPending}
                   loadingTitle="loading..."
                   icon={<DocumentPlusIcon className="h-5 w-5" />}
                 />

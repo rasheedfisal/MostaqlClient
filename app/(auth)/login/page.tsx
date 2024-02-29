@@ -57,14 +57,6 @@ const login = () => {
     }
   );
 
-  if (isSuccess) {
-      stateContext.dispatch({ type: "SET_USER", payload: data });
-        toast.success("You successfully logged in");
-        Cookies.set("loggedin", "true");
-        // stateContext.socketState.socket?.emit("addUser", data?.email);
-        setTimeout(() => router.push("/home"), 1000);
-  }
-
   //  API Login Mutation
   const { mutate: loginUser, isPending } = useMutation(
     {
@@ -75,12 +67,8 @@ const login = () => {
         // query.refetch();
         setEnableQuery(true);
       },
-      onError: (error: any) => {
-        if ((error as any).response?.data?.msg) {
-          toast.error((error as any).response?.data?.msg, {
-            position: "top-right",
-          });
-        }
+      onError: (error) => {
+        toast.error(error.message, {position: "top-right"});
       },
     }
   );
@@ -102,6 +90,14 @@ const login = () => {
     // 👇 Executing the loginUser Mutation
     loginUser(values);
   };
+
+   if (isSuccess) {
+      stateContext.dispatch({ type: "SET_USER", payload: data });
+        toast.success("You successfully logged in");
+        Cookies.set("loggedin", "true");
+        // stateContext.socketState.socket?.emit("addUser", data?.email);
+        setTimeout(() => router.push("/home"), 1000);
+  }
 
   return (
     <div className="w-full max-w-sm px-4 py-6 space-y-6 bg-white rounded-md dark:bg-darker">

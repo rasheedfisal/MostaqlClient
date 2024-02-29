@@ -64,7 +64,7 @@ const NavBar = ({
 
   useUpdateEffect(() => {
     skt?.on("getNotification", (data: recieveNotifications) => {
-      queryClient.invalidateQueries(["notifications"]);
+      queryClient.invalidateQueries({queryKey: ["notifications"]});
       setNotifyCount((prev) => ++prev);
     });
   }, [skt]);
