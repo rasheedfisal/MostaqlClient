@@ -13,6 +13,7 @@ import { logoutUserFn } from "../api/authApi";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 
 type DesktopProps = {
   toggleTheme: MouseEventHandler;
