@@ -77,7 +77,7 @@ const login = () => {
 
 
   useUpdateEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && enableQuery) {
       reset();
       stateContext.dispatch({ type: "SET_USER", payload: data });
         toast.success("You successfully logged in");

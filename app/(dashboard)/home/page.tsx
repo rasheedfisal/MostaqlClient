@@ -22,6 +22,7 @@ import { getDashboardStatisticsFn } from "../../api/siteInfoApi";
 import { toast } from "react-toastify";
 import { getMonthName, USDollar } from "../../api/currencyFormatter";
 import { useStateContext } from "../../../context/AppConext";
+import Link from "next/link";
 
 ChartJS.register(
   CategoryScale,
@@ -204,14 +205,12 @@ const home = () => {
       <div className="flex items-center justify-between px-4 py-4 border-b lg:py-6 dark:border-primary-darker">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
 
-        <a
-          href="#"
-          // href="https://github.com/Kamona-WD/kwd-dashboard"
-          // target="_blank"
+        <Link
+          href="/profile"
           className="px-4 py-2 text-sm text-white rounded-md bg-primary hover:bg-primary-dark focus:outline-none focus:ring focus:ring-primary focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-dark"
         >
           welcome {stateContext.state?.authUser?.fullname ?? "user"}
-        </a>
+        </Link>
       </div>
       <div className="mt-2">
         {/* <!-- State cards --> */}
