@@ -17,6 +17,7 @@ import Link from "next/link";
 import { getUserFn, updateUserFn } from "../../../api/usersApi";
 import { getAllRolesFn } from "../../../api/rolesApi";
 import FormSelect from "../../../../components/FormSelect";
+import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -48,7 +49,6 @@ const page = ({ params: { userId } }: PageProps) => {
     isLoading: isRolesLoading,
     isSuccess,
     data: roles,
-    error
   } = useQuery( {
     queryKey: ["roles"],
     queryFn: () => getAllRolesFn(token),
@@ -90,48 +90,50 @@ const page = ({ params: { userId } }: PageProps) => {
     resolver: zodResolver(updateUserSchema),
   });
 
+
+  useUpdateEffect(() => {
+    if (isUserSuccessfull) {
+       methods.reset({
+              fullname: getUser.fullname,
+              email: getUser.email,
+              phone: getUser.phone,
+              role: {
+                label: getUser.Role?.role_name,
+                value: getUser.Role?.id,
+              },
+            });
+    }
+  }, [isUserSuccessfull])
+  
+   
+  
+    const onSubmitHandler: SubmitHandler<IUpdateUser> = (values) => {
+      const formData = new FormData();
+      if (values.role?.value !== undefined) {
+        formData.append("role_id", values.role?.value);
+      }
+      if (values.email !== undefined) {
+        formData.append("email", values.email);
+      }
+      if (values.fullname !== undefined) {
+        formData.append("fullname", values.fullname);
+      }
+      if (values.phone !== undefined) {
+        formData.append("phone", values.phone);
+      }
+      if (values.profileImage !== undefined) {
+        formData.append("profileImage", values.profileImage);
+      }
+      if (values.password !== undefined && values.password !== "") {
+        formData.append("password", values.password);
+      }
+      updateUser({ id: userId, formData, accessToken: token });
+    };
+
+
   if (isUserLoading) {
     return <p>Loading...</p>;
   }
-
-  if (isUserSuccessfull) {
-     methods.reset({
-            fullname: getUser.fullname,
-            email: getUser.email,
-            phone: getUser.phone,
-            role: {
-              label: getUser.Role?.role_name,
-              value: getUser.Role?.id,
-            },
-          });
-  }
-
-   if (error !== null) {
-    toast.error(error.message, {position: "top-right"});
-  }
-
-  const onSubmitHandler: SubmitHandler<IUpdateUser> = (values) => {
-    const formData = new FormData();
-    if (values.role?.value !== undefined) {
-      formData.append("role_id", values.role?.value);
-    }
-    if (values.email !== undefined) {
-      formData.append("email", values.email);
-    }
-    if (values.fullname !== undefined) {
-      formData.append("fullname", values.fullname);
-    }
-    if (values.phone !== undefined) {
-      formData.append("phone", values.phone);
-    }
-    if (values.profileImage !== undefined) {
-      formData.append("profileImage", values.profileImage);
-    }
-    if (values.password !== undefined && values.password !== "") {
-      formData.append("password", values.password);
-    }
-    updateUser({ id: userId, formData, accessToken: token });
-  };
 
   return (
     <>

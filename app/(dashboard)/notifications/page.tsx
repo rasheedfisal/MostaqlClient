@@ -74,8 +74,9 @@ const page = () => {
     }
   };
 
-  if (isSuccess) {
-     if (notifications?.totalItems) {
+  useUpdateEffect(() => {
+    if (isSuccess) {
+       if (notifications?.totalItems) {
           setRecords(notifications.totalItems);
         }
         if (notifications?.currentPage) {
@@ -84,7 +85,16 @@ const page = () => {
         if (notifications?.totalPages) {
           setPages(notifications.totalPages);
         }
-  }
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+ 
 
   if (isLoading) {
     return <p>Loading...</p>;

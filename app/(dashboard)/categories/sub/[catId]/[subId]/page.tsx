@@ -17,6 +17,7 @@ import {
   getSubCategoryFn,
   updateSubCategoryFn,
 } from "../../../../../api/categoryApi";
+import useUpdateEffect from "../../../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -35,7 +36,7 @@ const page = ({ params: { catId, subId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isPriceLoading, data, isSuccess, isError, error } = useQuery(
+  const { isLoading: isPriceLoading, data, isSuccess, error } = useQuery(
     {
       queryKey: ["getSubCat", subId],
       queryFn: () => getSubCategoryFn(subId, token),
@@ -69,21 +70,19 @@ const page = ({ params: { catId, subId } }: PageProps) => {
     resolver: zodResolver(updateSubCatSchema),
   });
 
-  if (data) 
-  {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      methods.reset({
       name: data.name,
     });
-  }
-
-  if (isError) {
-    if (error) 
-    {
-      toast.error(error.message, {
-        position: "top-right",
-      });
     }
-  }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
   if (isPriceLoading) {
     return <p>Loading...</p>;

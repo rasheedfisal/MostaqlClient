@@ -55,7 +55,6 @@ const page = () => {
     hasNextPage, // boolean
     isFetchingNextPage, // boolean
     data: items,
-    status: lastStatus,
     isLoading,
     isSuccess,
     error: lastError,
@@ -333,11 +332,14 @@ const page = () => {
     }
   );
 
-  if (isPreviousPageSuccess) {
+  useUpdateEffect(() => {
+     if (isPreviousPageSuccess) {
     previousData?.pages.map((pg) => {
         setChat((prev) => Array.from(new Set([...prev, ...pg])));
     });
   }
+  }, [isPreviousPageSuccess])
+ 
 
   if (error !== null) {
     toast.error(error.message, {

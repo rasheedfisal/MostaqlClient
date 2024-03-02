@@ -33,7 +33,7 @@ export const loginUserFn = async (user: LoginInput) => {
 
 export const logoutUserFn = async () => {
   const response = await privateAuthApi.post<GenericResponse>("auth/signout");
-  return response.data;
+  return response;
 };
 
 export const getMeFn = async (accessToken: string | undefined) => {

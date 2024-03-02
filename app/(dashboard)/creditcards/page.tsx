@@ -17,6 +17,7 @@ import SubmitButton from "../../../components/SubmitButton";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import useAccessToken from "../../../hooks/useAccessToken";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import useUpdateEffect from "../../../hooks/useUpdateEffect";
 
 export interface ICard {
   number: string;
@@ -99,16 +100,21 @@ const page = () => {
     }
   };
 
+  useUpdateEffect(() => {
+    if (isSuccess) {
+         setCardState((prev) => ({ ...prev, ...data }));
+    }
+  }, [isSuccess])
 
-   if (isSuccess) {
-    setCardState((prev) => ({ ...prev, ...data }));
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
-  if (error !== null) {
-    toast.error(error.message, {
-      position: "top-right",
-    });
-  }
+  
+
+ 
 
   if (isItemsLoading) {
     return <p>Loading...</p>;

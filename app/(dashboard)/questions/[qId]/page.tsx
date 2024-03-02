@@ -15,6 +15,7 @@ import FormInput from "../../../../components/FormInput";
 import Link from "next/link";
 import { getQuestionFn, updateQuestionFn } from "../../../api/questionsApi";
 import FormTextArea from "../../../../components/FormTextArea";
+import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -73,21 +74,30 @@ const page = ({ params: { qId } }: PageProps) => {
     resolver: zodResolver(updateQuestionSchema),
   });
 
-  if (isDataLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isSuccess) {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+       methods.reset({
             question: data.question,
             answer: data.answer,
             order_no: data.order_no.toString(),
           });
-  }
+    }
+  }, [isSuccess])
 
+  useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+  
   const onSubmitHandler: SubmitHandler<IUpdateQuestion> = (values) => {
     updateQuestion({ id: qId, data: values, accessToken: token });
   };
+  
+  if (isDataLoading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>

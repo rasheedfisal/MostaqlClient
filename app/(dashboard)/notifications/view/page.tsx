@@ -27,10 +27,6 @@ const page = () => {
     }
   );
 
-  //   if (isLoading) {
-  //     return <p>Loading...</p>;
-  //   }
-
   useUpdateEffect(() => {
     if (!stateContext.notificationState.notification?.id) router.push("/home");
   }, []);
@@ -41,6 +37,10 @@ const page = () => {
         accessToken: token,
       });
   }, [stateContext.notificationState]);
+
+   //   if (isLoading) {
+  //     return <p>Loading...</p>;
+  //   }
 
   return (
     <>

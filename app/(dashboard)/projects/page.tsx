@@ -74,12 +74,9 @@ const page = () => {
     queryClient,
   ]);
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isSuccess) {
-    if (projects?.totalItems) {
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      if (projects?.totalItems) {
           setRecords(projects.totalItems);
         }
         if (projects?.currentPage) {
@@ -88,11 +85,23 @@ const page = () => {
         if (projects?.totalPages) {
           setPages(projects.totalPages);
         }
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+  
+
+
+  if (isLoading) {
+    return <p>Loading...</p>;
   }
 
-  if (error !== null) {
-    toast.error(error.message, {position: "top-right"})
-  }
+
 
   return (
     <>

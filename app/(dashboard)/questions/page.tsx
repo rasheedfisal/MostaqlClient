@@ -43,11 +43,11 @@ const page = () => {
     }
   };
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
   if (error !== null) {
     toast.error(error.message, {position: "top-right"})
+  }
+  if (isLoading) {
+    return <p>Loading...</p>;
   }
 
   return (

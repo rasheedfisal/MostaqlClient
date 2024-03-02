@@ -1,6 +1,5 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { verifyEmailFn } from "../../api/authApi";
@@ -21,7 +20,6 @@ const forgetPasswordSchema = object({
 export type ForgetInput = TypeOf<typeof forgetPasswordSchema>;
 
 const page = () => {
-  const router = useRouter();
   const methods = useForm<ForgetInput>({
     resolver: zodResolver(forgetPasswordSchema),
   });

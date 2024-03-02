@@ -106,12 +106,9 @@ const page = () => {
   };
 
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isSuccess) {
-    if (items?.totalItems) {
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      if (items?.totalItems) {
           setRecords(items.totalItems);
         }
         if (items?.currentPage) {
@@ -120,10 +117,20 @@ const page = () => {
         if (items?.totalPages) {
           setPages(items.totalPages);
         }
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+  if (isLoading) {
+    return <p>Loading...</p>;
   }
-  if (error !== null) {
-    toast.error(error.message, {position: "top-right"})
-  }
+
+ 
   return (
     <>
       {/* <!-- Content header --> */}

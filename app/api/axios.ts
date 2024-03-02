@@ -1,20 +1,21 @@
 import axios, { AxiosResponse } from "axios";
 import { ILoginResponse } from "../../typings";
 import { HttpError, httpErrorHandler } from "./errorHandler";
+import { env } from "./env.client";
 
 // const BASE_URL = "http://localhost:3000/api/v1/";
 // const BASE_URL = "https://calm-cyan-bullfrog-tie.cyclic.app/api/v1/";
-const BASE_URL = "http://62.171.175.75:3000/api/v1/";
+// const BASE_URL = "http://62.171.175.75:3000/api/v1/";
 
 export const authApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: env.NEXT_PUBLIC_BASE_URL,
   withCredentials: true,
 });
 
 authApi.defaults.headers.common["Content-Type"] = "application/json";
 
 export const privateAuthApi = axios.create({
-  baseURL: BASE_URL,
+  baseURL: env.NEXT_PUBLIC_BASE_URL,
   withCredentials: true,
 });
 
@@ -37,16 +38,16 @@ declare module 'axios' {
 // we use this to check if status code is 200 (success), if not, we throw an HttpError
 // to our error handler take place.
 function responseHandler(response: AxiosResponse<any>) {
-  const originalRequest = response?.config
-  if (originalRequest.raw) {
-    return response
-  }
-  if (response.status == 200) {
+  // const originalRequest = response?.config
+  // if (originalRequest.raw) {
+  //   return response
+  // }
+  if (response.status == 200 || response.status == 201) {
     const data = response?.data
     if (!data) {
       throw new HttpError('No data!')
     }
-    return data
+    return response;
   }
   throw new HttpError('Invalid status code!')
 }

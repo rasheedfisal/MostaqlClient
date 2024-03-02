@@ -40,8 +40,9 @@ const page = () => {
     }
   );
 
-  if (isSuccess) {
-    if (users?.totalItems) {
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      if (users?.totalItems) {
       setRecords(users.totalItems);
       }
       if (users?.currentPage) {
@@ -50,13 +51,14 @@ const page = () => {
       if (users?.totalPages) {
         setPages(users.totalPages);
       }
-  }
+    }
+  }, [isSuccess])
 
-  if (error !== null) {
-    toast.error(error.message, {
-            position: "top-right",
-          });
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
   useUpdateEffect(() => {
     if (

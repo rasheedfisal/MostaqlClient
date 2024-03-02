@@ -10,6 +10,7 @@ import SubmitButton from "../../../components/SubmitButton";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import FormInput from "../../../components/FormInput";
 import { getPaypalFn, updatePaypalFn } from "../../api/siteInfoApi";
+import useUpdateEffect from "../../../hooks/useUpdateEffect";
 
 const updsertPaypalSchema = object({
   email: string().min(1, "Email is required").email(),
@@ -49,24 +50,29 @@ const page = () => {
     resolver: zodResolver(updsertPaypalSchema),
   });
 
-  if (isSuccess) {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+       methods.reset({
             email: data.email,
           });
-  }
+    }
+  }, [isSuccess])
 
-  if (error !== null) {
-    toast.error(error.message, {position: "top-right"})
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
-  if (isItemsLoading) {
-    return <p>Loading...</p>;
-  }
-
+  
   const onSubmitHandler: SubmitHandler<IUpdsertPaypal> = (values) => {
     updateItem({ data: values, accessToken: token });
   };
-
+  
+  if (isItemsLoading) {
+    return <p>Loading...</p>;
+  }
+  
   return (
     <>
       {/* <!-- Content header --> */}

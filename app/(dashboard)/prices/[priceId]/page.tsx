@@ -14,6 +14,7 @@ import {
 import FormInput from "../../../../components/FormInput";
 import Link from "next/link";
 import { getPriceFn, updatePriceFn } from "../../../api/pricesApi";
+import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -43,7 +44,7 @@ const page = ({ params: { priceId } }: PageProps) => {
   const token = useAccessToken();
   const queryClient = useQueryClient();
 
-  const { isLoading: isPriceLoading, data, isSuccess } = useQuery(
+  const { isLoading: isPriceLoading, data, isSuccess, error } = useQuery(
     {
       queryKey: ["getPrice", priceId],
       queryFn: () => getPriceFn(priceId, token),
@@ -78,21 +79,30 @@ const page = ({ params: { priceId } }: PageProps) => {
     resolver: zodResolver(updatePriceSchema),
   });
 
-  if (isSuccess) {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      methods.reset({
             range_name: data.range_name,
             range_from: data.range_from.toString(),
             range_to: data.range_to.toString(),
           });
-  }
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+  
+  const onSubmitHandler: SubmitHandler<IUpdatePrice> = (values) => {
+    updatePrice({ id: priceId, price: values, accessToken: token });
+  };
 
   if (isPriceLoading) {
     return <p>Loading...</p>;
   }
-
-  const onSubmitHandler: SubmitHandler<IUpdatePrice> = (values) => {
-    updatePrice({ id: priceId, price: values, accessToken: token });
-  };
 
   return (
     <>

@@ -3,6 +3,7 @@ import { createContext, useContext, useReducer } from "react";
 import { senderNotification } from "../app/api/notificationApi";
 import { ILoginResponse, ISysUser, IUser } from "../typings";
 import { Socket, io } from "socket.io-client";
+import { env } from "../app/api/env.client";
 
 type State = {
   authUser: IUser | null;
@@ -68,7 +69,7 @@ const initialSocketState: SocketState = {
   //   transports: ["websocket", "polling"],
   //   autoConnect: false,
   // }),
-  socket: io("http://62.171.175.75:84"),
+  socket: io(env.NEXT_PUBLIC_WS_URL),
   // socket: io("http://localhost:3002"),
 };
 

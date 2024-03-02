@@ -10,6 +10,7 @@ import SubmitButton from "../../../components/SubmitButton";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import { getPrivacyFn, updatePrivacyFn } from "../../api/siteInfoApi";
 import FormTextArea from "../../../components/FormTextArea";
+import useUpdateEffect from "../../../hooks/useUpdateEffect";
 
 const updsertPrivacySchema = object({
   description: string().min(1, "Description is required"),
@@ -51,20 +52,28 @@ const page = () => {
     resolver: zodResolver(updsertPrivacySchema),
   });
 
-  if (isSuccess) {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      methods.reset({
             description: data.description,
           });
-  }
+    }
+  }, [isSuccess])
 
-  if (isItemsLoading) {
-    return <p>Loading...</p>;
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
+  
   const onSubmitHandler: SubmitHandler<IUpdsertPrivacy> = (values) => {
     updateItem({ data: values, accessToken: token });
   };
-
+  
+  if (isItemsLoading) {
+    return <p>Loading...</p>;
+  }
   return (
     <>
       {/* <!-- Content header --> */}

@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/solid";
 import FormInput from "../../../../components/FormInput";
 import Link from "next/link";
+import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -35,7 +36,7 @@ const page = ({ params: { catId } }: PageProps) => {
   const queryClient = useQueryClient();
 
 
-  const { isLoading: isCatLoading, data: category, isSuccess, isError, error } = useQuery(
+  const { isLoading: isCatLoading, data: category, isSuccess, error } = useQuery(
     {
       queryKey: ["getCategory", catId],
       queryFn: () => getCategoryFn(catId, token),
@@ -72,26 +73,20 @@ const page = ({ params: { catId } }: PageProps) => {
 
 
   
-  if (isSuccess) {
-    if (category) 
-    {
+  useUpdateEffect(() => {
+    if (isSuccess) {
       methods.reset({
         cat_name: category.cat_name,
         cat_description: category.cat_description,
       });
     }
-  }
+  }, [isSuccess])
 
-  if (isError) {
-    // if ((error as any).response?.data?.msg) {
-    //       toast.error((error as any).response?.data?.msg, {
-    //         position: "top-right",
-    //       });
-    //     }
-    toast.error(error.message, {
-            position: "top-right",
-          });
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
   if (isCatLoading) {
     return <p>Loading...</p>;

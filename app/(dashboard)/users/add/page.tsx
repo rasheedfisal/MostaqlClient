@@ -16,7 +16,7 @@ import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { getAllRolesFn } from "../../../api/rolesApi";
 import FileUpLoader from "../../../../components/FileUploader";
-import FormSelect, { ISelectData } from "../../../../components/FormSelect";
+import FormSelect from "../../../../components/FormSelect";
 import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 const createUserSchema = object({

@@ -11,6 +11,7 @@ import SubmitButton from "../../../components/SubmitButton";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import FormInput from "../../../components/FormInput";
 import { getWithdrawbleFn, updateWithdrawbleFn } from "../../api/siteInfoApi";
+import useUpdateEffect from "../../../hooks/useUpdateEffect";
 
 const updsertWithdrawSchema = object({
   amount: string()
@@ -53,23 +54,29 @@ const page = () => {
     resolver: zodResolver(updsertWithdrawSchema),
   });
 
-  if (isItemsLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isSuccess) {
-     methods.reset({
+  
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      methods.reset({
             amount: data.amount.toString(),
           });
-  }
+    }
+  }, [isSuccess])
 
-  if (error !== null) {
-    toast.error(error.message, {position: "top-right"});
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
 
   const onSubmitHandler: SubmitHandler<IUpdsertWithdraw> = (values) => {
     updateItem({ data: values, accessToken: token });
   };
+
+  if (isItemsLoading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>

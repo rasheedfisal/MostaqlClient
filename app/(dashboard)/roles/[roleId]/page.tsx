@@ -14,6 +14,7 @@ import {
 import FormInput from "../../../../components/FormInput";
 import Link from "next/link";
 import { getRoleFn, updateRoleFn } from "../../../api/rolesApi";
+import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -66,19 +67,26 @@ const page = ({ params: { roleId } }: PageProps) => {
     resolver: zodResolver(updateRoleSchema),
   });
 
+    useUpdateEffect(() => {
+    if (isSuccess) {
+      methods.reset({
+            role_name: data.role_name,
+            role_description: data.role_description,
+          });
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
   if (isPriceLoading) {
     return <p>Loading...</p>;
   }
 
-  if (isSuccess) {
-     methods.reset({
-            role_name: data.role_name,
-            role_description: data.role_description,
-          });
-  }
-  if (error !== null) {
-    toast.error(error.message, {position: "top-right"});
-  }
+  
 
   const onSubmitHandler: SubmitHandler<IUpdateRole> = (values) => {
     updateRole({ id: roleId, data: values, accessToken: token });

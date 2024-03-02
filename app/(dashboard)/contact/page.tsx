@@ -10,6 +10,7 @@ import SubmitButton from "../../../components/SubmitButton";
 import { DocumentPlusIcon } from "@heroicons/react/24/solid";
 import FormInput from "../../../components/FormInput";
 import { getContactFn, updateContactFn } from "../../api/siteInfoApi";
+import useUpdateEffect from "../../../hooks/useUpdateEffect";
 
 const updsertContactSchema = object({
   website_link: string().min(1, "Link is required"),
@@ -49,19 +50,21 @@ const page = () => {
     resolver: zodResolver(updsertContactSchema),
   });
 
-  if (isSuccess) {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+       methods.reset({
       website_link: data.website_link,
       phone: data.phone,
       email: data.email,
     });
-  }
+    }
+  }, [isSuccess])
 
-  if (error !== null) {
-    toast.error(error.message, {
-      position: "top-right",
-    });
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
 
   if (isItemsLoading) {
     return <p>Loading...</p>;

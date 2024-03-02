@@ -15,6 +15,7 @@ import FormInput from "../../../../components/FormInput";
 import Link from "next/link";
 import { getRateFn, updateRateFn } from "../../../api/commissionrateApi";
 import FormCheckbox from "../../../../components/FormCheckbox";
+import useUpdateEffect from "../../../../hooks/useUpdateEffect";
 
 type PageProps = {
   params: {
@@ -72,24 +73,30 @@ const page = ({ params: { rateId } }: PageProps) => {
     resolver: zodResolver(updateRateSchema),
   });
 
-  if (isPriceLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isSuccess) {
-    methods.reset({
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      methods.reset({
             ratepercent: data.ratepercent.toString(),
             iscurrent: data.iscurrent,
           });
-  }
+    }
+  }, [isSuccess])
 
-  if (error !== null) {
-    toast.error(error.message, {position: "top-right"})
-  }
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+ 
 
   const onSubmitHandler: SubmitHandler<IUpdateRate> = (values) => {
     updateRate({ id: rateId, rate: values, accessToken: token });
   };
+
+   if (isPriceLoading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>

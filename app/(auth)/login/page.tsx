@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -47,13 +47,6 @@ const login = () => {
       enabled: enableQuery,
       select: (data) => data,
       retry: 1,
-      // onSuccess: (data) => {
-      //   stateContext.dispatch({ type: "SET_USER", payload: data });
-      //   toast.success("You successfully logged in");
-      //   Cookies.set("loggedin", "true");
-      //   // stateContext.socketState.socket?.emit("addUser", data?.email);
-      //   setTimeout(() => router.push("/home"), 1000);
-      // },
     }
   );
 
@@ -62,10 +55,13 @@ const login = () => {
     {
       mutationFn: (userData: LoginInput) => loginUserFn(userData),
       onSuccess: (data) => {
+        if (data) {
+
         setUseToken(data.token);
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
         // query.refetch();
         setEnableQuery(true);
+        } 
       },
       onError: (error) => {
         toast.error(error.message, {position: "top-right"});
@@ -79,25 +75,26 @@ const login = () => {
     formState: { isSubmitSuccessful },
   } = methods;
 
+
   useUpdateEffect(() => {
-    if (isSubmitSuccessful) {
+    if (isSuccess) {
       reset();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSubmitSuccessful]);
-
-  const onSubmitHandler: SubmitHandler<LoginInput> = (values) => {
-    // 👇 Executing the loginUser Mutation
-    loginUser(values);
-  };
-
-   if (isSuccess) {
       stateContext.dispatch({ type: "SET_USER", payload: data });
         toast.success("You successfully logged in");
         Cookies.set("loggedin", "true");
         // stateContext.socketState.socket?.emit("addUser", data?.email);
         setTimeout(() => router.push("/home"), 1000);
-  }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess]);
+
+  const onSubmitHandler: SubmitHandler<LoginInput> = (values) => {
+    // 👇 Executing the loginUser Mutation
+    loginUser(values);
+  };
+   
+  
+   
 
   return (
     <div className="w-full max-w-sm px-4 py-6 space-y-6 bg-white rounded-md dark:bg-darker">

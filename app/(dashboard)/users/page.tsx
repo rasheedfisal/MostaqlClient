@@ -98,12 +98,9 @@ const ManageUsers = () => {
     }
   };
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
-  if (isSuccess) {
-     if (users?.totalItems) {
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      if (users?.totalItems) {
           setRecords(users.totalItems);
         }
         if (users?.currentPage) {
@@ -112,11 +109,21 @@ const ManageUsers = () => {
         if (users?.totalPages) {
           setPages(users.totalPages);
         }
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
+  
+
+  if (isLoading) {
+    return <p>Loading...</p>;
   }
 
-   if (error !== null) {
-    toast.error(error.message, {position: "top-right"});
-  }
 
   return (
     <>

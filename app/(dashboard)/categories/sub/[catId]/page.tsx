@@ -89,7 +89,7 @@ const page = ({ params: { catId } }: PageProps) => {
           </div>
           <div className="block w-full relative overflow-x-auto">
             <div className="relative">
-              {isDeleteing && <TableLoader />}
+              {isLoading && isDeleteing && <TableLoader />}
               <table className="items-center bg-transparent w-full border-collapse ">
                 <thead>
                   <tr>

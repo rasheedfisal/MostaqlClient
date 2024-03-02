@@ -53,7 +53,7 @@ const page = () => {
     setImg(stateContext.state.authUser?.imgPath ?? "/noImg.jpg");
   }, [stateContext.state]);
 
-  const { isFetching: isUserDataLoading, isSuccess, data } = useQuery(
+  const { isFetching: isUserDataLoading, isSuccess, data, error } = useQuery(
     {
       queryKey: ["authUser"],
       queryFn: () => getMeFn(token),
@@ -81,6 +81,19 @@ const page = () => {
     resolver: zodResolver(updateUserSchema),
   });
 
+  useUpdateEffect(() => {
+    if (isSuccess) {
+      stateContext.dispatch({ type: "SET_USER", payload: data });
+        toast.success("Profile updated successfully");
+    }
+  }, [isSuccess])
+
+   useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {position: "top-right"});
+    }
+  }, [error])
+
   const onSubmitHandler: SubmitHandler<IUpdateUser> = (values) => {
     const formData = new FormData();
 
@@ -101,11 +114,6 @@ const page = () => {
     }
     updateUser({ formData, accessToken: token });
   };
-
-  if (isSuccess) {
-     stateContext.dispatch({ type: "SET_USER", payload: data });
-        toast.success("Profile updated successfully");
-  }
 
   return (
     <>
