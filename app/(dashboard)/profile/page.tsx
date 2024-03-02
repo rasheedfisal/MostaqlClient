@@ -82,7 +82,7 @@ const page = () => {
   });
 
   useUpdateEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && enableQuery) {
       stateContext.dispatch({ type: "SET_USER", payload: data });
         toast.success("Profile updated successfully");
     }
