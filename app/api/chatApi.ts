@@ -78,6 +78,11 @@ export const getAllUsersChatFn = async (
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
+
+  if (!!!chat.receiver_id) {
+    return;
+  }
+
   const response = await privateAuthApi.post<IPaginatedResponse<IChat>>(
     `conversations/chat?page=${pageNo}&size=${recordSize}`,
     chat

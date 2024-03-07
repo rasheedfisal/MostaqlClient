@@ -17,10 +17,11 @@ import { object, string, TypeOf, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormSearch from "../../../components/FormSearch";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { formatDistance, subDays, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import useDebounce from "../../../hooks/useDebounce";
 import useIntersectionObserver from "../../../hooks/useIntersectionObserver";
 import FormUploader from "../../../components/FormUploader";
+import { timeAgo } from "../../api/date";
 
 type sendMessage = {
   senderId: string;
@@ -57,19 +58,18 @@ const page = () => {
     data: items,
     isLoading,
     isSuccess,
+    refetch,
     error: lastError,
-  } = useInfiniteQuery(
-    {
-      queryKey: ["lastchat", debouncedSearchQuery],
-      queryFn: ({ pageParam = 1 }) =>
+  } = useInfiniteQuery({
+    queryKey: ["lastchat", debouncedSearchQuery],
+    queryFn: ({ pageParam = 1 }) =>
       getAllLastChatUsersFn(token, pageParam, debouncedSearchQuery),
-      initialPageParam: 0,
-      retry: 1,
-      getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length ? allPages.length + 1 : undefined;
-      },
-    }
-  );
+    initialPageParam: 1,
+    retry: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length ? allPages.length + 1 : undefined;
+    },
+  });
 
   const lastchatRef = useRef<HTMLDivElement>(null);
   useIntersectionObserver({
@@ -129,17 +129,18 @@ const page = () => {
                     {chatuser.reciever_name}
                   </span>
                   <span className="block ml-2 text-sm ">
-                    {formatDistance(
+                    {/* {formatDistance(
                       parseISO(chatuser.createdAt.toString()),
                       subDays(new Date(), 0),
                       {
                         addSuffix: true,
                         includeSeconds: true,
                       }
-                    )}
+                    )} */}
+                    {timeAgo(chatuser.createdAt)}
                   </span>
                 </div>
-                <span className="block ml-2 text-sm truncate">
+                <span className="block w-40 ml-2 text-sm truncate">
                   {chatuser.message_type === "text"
                     ? chatuser.message
                     : chatuser.message_type === "image"
@@ -173,17 +174,18 @@ const page = () => {
                     {chatuser.sender_name}
                   </span>
                   <span className="block ml-2 text-sm ">
-                    {formatDistance(
+                    {/* {formatDistance(
                       parseISO(chatuser.createdAt.toString()),
                       subDays(new Date(), 0),
                       {
                         addSuffix: true,
                         includeSeconds: true,
                       }
-                    )}
+                    )} */}
+                    {timeAgo(chatuser.createdAt)}
                   </span>
                 </div>
-                <span className="block ml-2 text-sm truncate">
+                <span className="block w-40 ml-2 text-sm truncate">
                   {chatuser.message}
                 </span>
               </div>
@@ -208,7 +210,9 @@ const page = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubmitSuccessful]);
+
   useUpdateEffect(() => {
+    setChat([]);
     if (scrollRef.current) {
       scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     }
@@ -221,12 +225,19 @@ const page = () => {
   }, [chat]);
 
   useUpdateEffect(() => {
-    if (currentChat !== null) {
-      setCurrentChat(stateContext.chatState.currentChat);
-    } else {
-      setCurrentChat(stateContext.chatState.currentChat);
+    // if (currentChat !== null) {
+    //   setCurrentChat(stateContext.chatState.currentChat);
+    // } else {
+    //   setCurrentChat(stateContext.chatState.currentChat);
+    // }
+
+    if (stateContext.chatState.currentChat !== null) {
+      setTimeout(() => {
+        setChat([]);
+        setCurrentChat(stateContext.chatState.currentChat);
+      }, 0);
     }
-    setChat([]);
+    //setChat([]);
   }, [stateContext.chatState.currentChat]);
 
   useUpdateEffect(() => {
@@ -244,6 +255,57 @@ const page = () => {
         setChat((prev) => [...prev, recevedMsg]);
     });
   }, [skt]);
+
+  useUpdateEffect(() => {
+    buttonRef.current?.click();
+    // formRef.current?.submit();
+  }, [fileUrl]);
+
+  const {
+    data: previousData,
+    fetchPreviousPage, //function
+    hasPreviousPage, // boolean
+    isFetchingPreviousPage, // boolean
+    status,
+    error,
+    isSuccess: isPreviousPageSuccess,
+  } = useInfiniteQuery({
+    queryKey: ["userchat", currentChat?.id?.toString()],
+    queryFn: ({ pageParam = 1 }) =>
+      getAllUsersChatFn(
+        token,
+        { receiver_id: currentChat?.id! },
+        pageParam,
+        10
+      ),
+    initialPageParam: 1,
+    retry: 1,
+    enabled: stateContext.chatState.getchat,
+    getNextPageParam: () => {
+      return undefined;
+    },
+    getPreviousPageParam: (lastPage, allPages) => {
+      return lastPage?.length ? allPages.length + 1 : undefined;
+    },
+  });
+
+  useUpdateEffect(() => {
+    if (isPreviousPageSuccess) {
+      previousData?.pages.map((pg) => {
+        !!pg &&
+          currentChat !== null &&
+          setChat((prev) => Array.from(new Set([...prev, ...pg])));
+      });
+    }
+  }, [isPreviousPageSuccess, previousData]);
+
+  useUpdateEffect(() => {
+    if (error !== null) {
+      toast.error(error.message, {
+        position: "top-right",
+      });
+    }
+  }, [error]);
 
   const onSubmitHandler: SubmitHandler<ICreateMessage> = async (values) => {
     try {
@@ -287,6 +349,7 @@ const page = () => {
       });
       if (chat) {
         setChat((prev) => [...prev, response]);
+        refetch();
       } else {
         toast.error("search or select user to start the chat", {
           position: "top-right",
@@ -301,51 +364,6 @@ const page = () => {
       }
     }
   };
-
-  useUpdateEffect(() => {
-    buttonRef.current?.click();
-    // formRef.current?.submit();
-  }, [fileUrl]);
-
-  const {
-    data: previousData,
-    fetchPreviousPage, //function
-    hasPreviousPage, // boolean
-    isFetchingPreviousPage, // boolean
-    status,
-    error,
-    isSuccess: isPreviousPageSuccess
-  } = useInfiniteQuery(
-    {
-      queryKey: ["userchat", currentChat?.id?.toString()],
-      queryFn: ({ pageParam = 1 }) =>
-      getAllUsersChatFn(token,{ receiver_id: currentChat?.id! }, pageParam,10),
-      initialPageParam: 0,
-      retry: 1,
-      enabled: stateContext.chatState.getchat,
-      getNextPageParam: () => {
-        return undefined;
-      },
-      getPreviousPageParam: (lastPage, allPages) => {
-        return lastPage.length ? allPages.length + 1 : undefined;
-      },
-    }
-  );
-
-  useUpdateEffect(() => {
-     if (isPreviousPageSuccess) {
-    previousData?.pages.map((pg) => {
-        setChat((prev) => Array.from(new Set([...prev, ...pg])));
-    });
-  }
-  }, [isPreviousPageSuccess])
- 
-
-  if (error !== null) {
-    toast.error(error.message, {
-        position: "top-right",
-    });
-  }
 
   if (currentChat === null) {
     return (
@@ -644,14 +662,15 @@ const page = () => {
                         )}
                       </span>
                       <span className="block text-xs">
-                        {formatDistance(
+                        {/* {formatDistance(
                           parseISO(uchat.createdAt.toString()),
                           subDays(new Date(), 0),
                           {
                             addSuffix: true,
                             includeSeconds: true,
                           }
-                        )}
+                        )} */}
+                        {timeAgo(uchat.createdAt)}
                       </span>
                     </div>
                   </li>

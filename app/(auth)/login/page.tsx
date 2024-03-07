@@ -40,34 +40,37 @@ const login = () => {
   const stateContext = useStateContext();
 
   // API Get Current Logged-in user
-  const { isFetching: isUserDataLoading, isSuccess, data } = useQuery(
-    {
-      queryKey: ["authUser"],
-      queryFn: () => getMeFn(useToken),
-      enabled: enableQuery,
-      select: (data) => data,
-      retry: 1,
-    }
-  );
+  const {
+    isFetching: isUserDataLoading,
+    isSuccess,
+    data,
+  } = useQuery({
+    queryKey: ["authUser"],
+    queryFn: () => getMeFn(useToken),
+    enabled: enableQuery,
+    select: (data) => data,
+    retry: 1,
+  });
 
   //  API Login Mutation
-  const { mutate: loginUser, isPending } = useMutation(
-    {
-      mutationFn: (userData: LoginInput) => loginUserFn(userData),
-      onSuccess: (data) => {
-        if (data) {
+  const { mutate: loginUser, isPending } = useMutation({
+    mutationFn: (userData: LoginInput) => loginUserFn(userData),
+    onSuccess: (data) => {
+      if (data) {
+        console.log(data);
 
         setUseToken(data.token);
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
         // query.refetch();
         setEnableQuery(true);
-        } 
-      },
-      onError: (error) => {
-        toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+      }
+    },
+    onError: (error) => {
+      console.log(error);
+
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
   const {
     reset,
@@ -75,15 +78,14 @@ const login = () => {
     formState: { isSubmitSuccessful },
   } = methods;
 
-
   useUpdateEffect(() => {
     if (isSuccess && enableQuery) {
       reset();
       stateContext.dispatch({ type: "SET_USER", payload: data });
-        toast.success("You successfully logged in");
-        Cookies.set("loggedin", "true");
-        // stateContext.socketState.socket?.emit("addUser", data?.email);
-        setTimeout(() => router.push("/home"), 1000);
+      toast.success("You successfully logged in");
+      Cookies.set("loggedin", "true");
+      // stateContext.socketState.socket?.emit("addUser", data?.email);
+      setTimeout(() => router.push("/home"), 1000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
@@ -92,9 +94,6 @@ const login = () => {
     // 👇 Executing the loginUser Mutation
     loginUser(values);
   };
-   
-  
-   
 
   return (
     <div className="w-full max-w-sm px-4 py-6 space-y-6 bg-white rounded-md dark:bg-darker">

@@ -29,18 +29,16 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     isLoading,
     isSuccess,
     error,
-  } = useInfiniteQuery(
-    {
-      queryKey: ["findUsers", debouncedSearchQuery],
-      queryFn: ({ pageParam = 1 }) =>
-        getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
-      retry: 1,
-      getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length ? allPages.length + 1 : undefined;
-      },
-      initialPageParam: 0
-    }
-  );
+  } = useInfiniteQuery({
+    queryKey: ["findUsers", debouncedSearchQuery],
+    queryFn: ({ pageParam = 1 }) =>
+      getAllChatUsersFn(token, pageParam, debouncedSearchQuery),
+    retry: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length ? allPages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+  });
   const lastUserRef = useRef<HTMLDivElement>(null);
 
   useIntersectionObserver({
@@ -48,8 +46,7 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     onIntersect: fetchNextPage,
     enabled: hasNextPage,
   });
-  if (error !== null)
-    return <p className="center">Error: {error.message}</p>;
+  if (error !== null) return <p className="center">Error: {error.message}</p>;
 
   const handleSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "32") {
