@@ -34,26 +34,24 @@ const page = () => {
   const token = useAccessToken();
   const stateContext = useStateContext();
   const queryClient = useQueryClient();
-  const { isPending, mutate: createNotify } = useMutation(
-   
-    {
-      mutationFn:  (notify: ICreateNotify) =>
+  const { isPending, mutate: createNotify } = useMutation({
+    mutationFn: (notify: ICreateNotify) =>
       createNotitifcationFn({ notify, accessToken: token }),
-      onSuccess: () => {
-        queryClient.invalidateQueries({queryKey:["senderNotification"]});
-        toast.success("Notification created successfully");
-      },
-      onError: (error) => {
-         toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["senderNotification"] });
+      toast.success("Notification created successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
   const methods = useForm<ICreateNotify>({
     resolver: zodResolver(createNotifySchema),
   });
   const {
     formState: { isSubmitSuccessful },
+    watch,
   } = methods;
 
   useUpdateEffect(() => {
@@ -69,13 +67,16 @@ const page = () => {
       values.target !== "owner" &&
       values.target !== "all"
     ) {
-      if (stateContext.chatState.currentChat?.id === null) {
+      if (
+        stateContext.chatState.currentChat === null ||
+        stateContext.chatState.currentChat?.id === undefined
+      ) {
         toast.error("Please Select User from Search Bar");
       } else {
         createNotify({
           title: values.title,
           description: values.description,
-          target: stateContext.chatState.currentChat?.id!,
+          target: stateContext.chatState.currentChat?.id,
         });
       }
     } else {
@@ -135,6 +136,10 @@ const page = () => {
                   name="target"
                   value="user"
                 />
+                {watch("target") === "user" &&
+                  !!stateContext.chatState.currentChat && (
+                    <label>{`(${stateContext.chatState.currentChat.fullname})`}</label>
+                  )}
               </div>
               <div className="flex">
                 <SubmitButton

@@ -57,8 +57,6 @@ const login = () => {
     mutationFn: (userData: LoginInput) => loginUserFn(userData),
     onSuccess: (data) => {
       if (data) {
-        console.log(data);
-
         setUseToken(data.token);
         stateContext.tokenDispatch({ type: "SET_Token", payload: data });
         // query.refetch();
@@ -66,8 +64,6 @@ const login = () => {
       }
     },
     onError: (error) => {
-      console.log(error);
-
       toast.error(error.message, { position: "top-right" });
     },
   });

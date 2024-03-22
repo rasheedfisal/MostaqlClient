@@ -15,10 +15,10 @@ function useFetchChat({ token, chat, page }: useFetchProps) {
 
   const sendQuery = useCallback(async () => {
     try {
-      await setLoading(true);
-      await setError(false);
+      setLoading(true);
+      setError(false);
       const res = await getAllUsersChatFn(token, chat, page, 10);
-      await setList((prev) => [...prev, ...res]);
+      !!res && setList((prev) => [...prev, ...res]);
       setLoading(false);
     } catch (err) {
       setError((err as any).response?.data?.msg?.message);
