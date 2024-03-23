@@ -2,7 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import { verifyEmailFn } from "../../api/authApi";
+import { forgetPasswordFn } from "../../api/authApi";
 import { useMutation } from "@tanstack/react-query";
 
 import FormInput2 from "../../../components/FormInput2";
@@ -24,17 +24,15 @@ const page = () => {
     resolver: zodResolver(forgetPasswordSchema),
   });
 
-  const { mutate: verifyEmail, isPending } = useMutation(
-    {
-      mutationFn: (userData: ForgetInput) => verifyEmailFn(userData),
-      onSuccess: () => {
-        toast.success("Success: check your email for verfication link");
-      },
-      onError: (error) => {
-        toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+  const { mutate: verifyEmail, isPending } = useMutation({
+    mutationFn: (userData: ForgetInput) => forgetPasswordFn(userData),
+    onSuccess: () => {
+      toast.success("Success: check your email for verfication link");
+    },
+    onError: (error) => {
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
   const {
     reset,

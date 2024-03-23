@@ -32,17 +32,15 @@ const page = ({ params: { userId, resetId } }: PageProps) => {
     resolver: zodResolver(forgetPasswordSchema),
   });
 
-  const { mutate: forgetPassword, isPending } = useMutation(
-    {
-      mutationFn:  (userData: IResetPassword) => resetPasswordFn(userData),
-      onSuccess: () => {
-        toast.success("Success: password changed");
-      },
-      onError: (error: any) => {
-         toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+  const { mutate: forgetPassword, isPending } = useMutation({
+    mutationFn: (userData: IResetPassword) => resetPasswordFn(userData),
+    onSuccess: () => {
+      toast.success("Success: password changed");
+    },
+    onError: (error: any) => {
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
   const {
     reset,
@@ -59,7 +57,12 @@ const page = ({ params: { userId, resetId } }: PageProps) => {
 
   const onSubmitHandler: SubmitHandler<ResetInput> = (values) => {
     // 👇 Executing the loginUser Mutation
-    forgetPassword({ userId, resetId, password: values.password });
+    forgetPassword({
+      id: userId,
+      otp: resetId,
+      newPassword: values.password,
+      confirmNewPassword: values.confirm,
+    });
   };
 
   return (

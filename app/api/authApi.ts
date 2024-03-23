@@ -10,15 +10,16 @@ import {
 import { authApi, privateAuthApi } from "./axios";
 
 export interface IResetPassword {
-  userId: string;
-  resetId: string;
-  password: string;
+  id: string;
+  otp: string;
+  newPassword: string;
+  confirmNewPassword: string;
 }
 
 export const signUpUserFn = async (user: RegisterInput) => {
   const response = await authApi.post<GenericResponse>("auth/signup", user);
   if (response.status !== 200) {
-    throw new Error(response?.data?.message)
+    throw new Error(response?.data?.message);
   }
   return response.data;
 };
@@ -44,12 +45,15 @@ export const getMeFn = async (accessToken: string | undefined) => {
   return response.data;
 };
 
-export const verifyEmailFn = async (email: ForgetInput) => {
-  const response = await authApi.post<GenericResponse>("reset", email);
+export const forgetPasswordFn = async (email: ForgetInput) => {
+  const response = await authApi.post<GenericResponse>(
+    "forget-password",
+    email
+  );
   return response.data;
 };
 
 export const resetPasswordFn = async (reset: IResetPassword) => {
-  const response = await authApi.post<GenericResponse>(`reset/user`, reset);
+  const response = await authApi.post<GenericResponse>(`reset-password`, reset);
   return response.data;
 };
