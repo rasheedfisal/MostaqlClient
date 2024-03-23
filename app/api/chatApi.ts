@@ -11,9 +11,9 @@ interface LastChat {
   sender_name: string;
   sender_email: string;
   sender_img: string | null;
-  reciever_name: string;
-  reciever_email: string;
-  reciever_img: string | null;
+  receiver_name: string;
+  receiver_email: string;
+  receiver_img: string | null;
 }
 
 export const getAllChatUsersFn = async (

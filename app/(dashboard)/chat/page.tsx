@@ -22,6 +22,7 @@ import useDebounce from "../../../hooks/useDebounce";
 import useIntersectionObserver from "../../../hooks/useIntersectionObserver";
 import FormUploader from "../../../components/FormUploader";
 import { timeAgo } from "../../api/date";
+import { env } from "../../api/env.client";
 
 type sendMessage = {
   senderId: string;
@@ -110,7 +111,10 @@ const page = () => {
             <>
               <img
                 className="object-cover w-10 h-10 rounded-full"
-                src={chatuser.reciever_img ?? "/noImg.jpg"}
+                src={
+                  env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.receiver_img ??
+                  "/noImg.jpg"
+                }
                 alt="username"
               />
               <div
@@ -118,15 +122,15 @@ const page = () => {
                 onClick={() =>
                   setCurrentChatUser(
                     chatuser.receiver_id,
-                    chatuser.reciever_email,
-                    chatuser.reciever_name,
-                    chatuser.reciever_img ?? ""
+                    chatuser.receiver_email,
+                    chatuser.receiver_name,
+                    chatuser.receiver_img ?? ""
                   )
                 }
               >
                 <div className="flex justify-between">
-                  <span className="block ml-2 font-semibold ">
-                    {chatuser.reciever_name}
+                  <span className="block ml-2 font-semibold">
+                    {chatuser.receiver_name}
                   </span>
                   <span className="block ml-2 text-sm ">
                     {/* {formatDistance(
@@ -155,7 +159,10 @@ const page = () => {
             <>
               <img
                 className="object-cover w-10 h-10 rounded-full"
-                src={chatuser.sender_img ?? "/noImg.jpg"}
+                src={
+                  env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.sender_img ??
+                  "/noImg.jpg"
+                }
                 alt="username"
               />
               <div

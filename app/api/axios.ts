@@ -8,14 +8,14 @@ import { env } from "./env.client";
 // const BASE_URL = "http://62.171.175.75:3000/api/v1/";
 
 export const authApi = axios.create({
-  baseURL: env.NEXT_PUBLIC_BASE_URL,
+  baseURL: env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
 });
 
 authApi.defaults.headers.common["Content-Type"] = "application/json";
 
 export const privateAuthApi = axios.create({
-  baseURL: env.NEXT_PUBLIC_BASE_URL,
+  baseURL: env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
 });
 
@@ -26,13 +26,12 @@ export const refreshAccessTokenFn = async () => {
   return response.data;
 };
 
-declare module 'axios' {
+declare module "axios" {
   export interface AxiosRequestConfig {
-    raw?: boolean
-    silent?: boolean
+    raw?: boolean;
+    silent?: boolean;
   }
 }
-
 
 // this interceptor is used to handle all success ajax request
 // we use this to check if status code is 200 (success), if not, we throw an HttpError
@@ -43,31 +42,28 @@ function responseHandler(response: AxiosResponse<any>) {
   //   return response
   // }
   if (response.status == 200 || response.status == 201) {
-    const data = response?.data
+    const data = response?.data;
     if (!data) {
-      throw new HttpError('No data!')
+      throw new HttpError("No data!");
     }
     return response;
   }
-  throw new HttpError('Invalid status code!')
+  throw new HttpError("Invalid status code!");
 }
 
 async function responseErrorHandler(error: any) {
   const originalRequest = error?.config;
 
   if (originalRequest.raw) {
-    return error
+    return error;
   }
   // the code of this function was written in above section.
-  return  await httpErrorHandler(error)
+  return await httpErrorHandler(error);
 }
-
-
 
 //register interceptor like this
 authApi.interceptors.response.use(responseHandler, responseErrorHandler);
 privateAuthApi.interceptors.response.use(responseHandler, responseErrorHandler);
-
 
 // privateAuthApi.interceptors.request.use(
 //   (config) => {

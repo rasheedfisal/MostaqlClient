@@ -5,13 +5,12 @@ export const env = {
   NODE_ENV: z.string().optional().parse(process.env.NODE_ENV),
   PORT: z.string().optional().parse(process.env.PORT),
 
-  NEXT_PUBLIC_BASE_URL: z
+  NEXT_PUBLIC_BASE_API_URL: z
     .string()
     .min(1)
-    .parse(process.env.NEXT_PUBLIC_BASE_URL),
+    .parse(process.env.NEXT_PUBLIC_BASE_API_URL),
 
-  NEXT_PUBLIC_WS_URL: z
-    .string()
-    .min(1)
-    .parse(process.env.NEXT_PUBLIC_WS_URL),
+  NEXT_PUBLIC_API_URL: z.string().min(1).parse(process.env.NEXT_PUBLIC_API_URL),
+
+  NEXT_PUBLIC_WS_URL: z.string().min(1).parse(process.env.NEXT_PUBLIC_WS_URL),
 };
