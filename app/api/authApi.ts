@@ -47,13 +47,16 @@ export const getMeFn = async (accessToken: string | undefined) => {
 
 export const forgetPasswordFn = async (email: ForgetInput) => {
   const response = await authApi.post<GenericResponse>(
-    "forget-password",
+    "auth/forget-password",
     email
   );
   return response.data;
 };
 
 export const resetPasswordFn = async (reset: IResetPassword) => {
-  const response = await authApi.post<GenericResponse>(`reset-password`, reset);
+  const response = await authApi.post<GenericResponse>(
+    `auth/reset-password`,
+    reset
+  );
   return response.data;
 };
