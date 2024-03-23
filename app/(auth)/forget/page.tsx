@@ -10,6 +10,7 @@ import SubmitButton from "../../../components/SubmitButton";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import Link from "next/link";
 import { object, string, TypeOf } from "zod";
+import { useRouter } from "next/navigation";
 
 const forgetPasswordSchema = object({
   email: string()
@@ -20,6 +21,7 @@ const forgetPasswordSchema = object({
 export type ForgetInput = TypeOf<typeof forgetPasswordSchema>;
 
 const page = () => {
+  const { push } = useRouter();
   const methods = useForm<ForgetInput>({
     resolver: zodResolver(forgetPasswordSchema),
   });
@@ -28,6 +30,7 @@ const page = () => {
     mutationFn: (userData: ForgetInput) => forgetPasswordFn(userData),
     onSuccess: () => {
       toast.success("Success: check your email for verfication link");
+      push("/login");
     },
     onError: (error) => {
       toast.error(error.message, { position: "top-right" });

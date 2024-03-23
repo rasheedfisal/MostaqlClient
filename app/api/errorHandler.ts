@@ -21,9 +21,9 @@ export async function httpErrorHandler(error: any) {
     const originalRequest = error?.config; //here we have access the config used to make the api call (we can make a retry using this conf)
 
     if (error.code === "ERR_NETWORK") {
-      return new Error("connection problems..");
+      throw new Error("connection problems..");
     } else if (error.code === "ERR_CANCELED") {
-      return new Error("connection canceled..");
+      throw new Error("connection canceled..");
     }
 
     if (response && originalRequest !== undefined) {
@@ -44,15 +44,15 @@ export async function httpErrorHandler(error: any) {
       }
 
       if (statusCode >= 400) {
-        toast.error(response?.data?.msg);
-        return new HttpError(response?.data?.msg);
+        //toast.error(response?.data?.msg);
+        throw new Error(response?.data?.msg);
       }
       //redirect user to login
       //   else if (statusCode === 403) {
       //     return new HttpError('Please login to access this resource')
       //   }
     } else if (request) {
-      return new HttpError("Server error");
+      throw new Error("Server error");
       //The request was made but no response was received, `error.request` is an instance of XMLHttpRequest in the browser and an instance of http.ClientRequest in Node.js
     }
   }

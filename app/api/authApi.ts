@@ -47,7 +47,7 @@ export const getMeFn = async (accessToken: string | undefined) => {
 
 export const forgetPasswordFn = async (email: ForgetInput) => {
   const response = await authApi.post<GenericResponse>(
-    "auth/forget-password",
+    "auth/forgot-password",
     email
   );
   return response.data;
