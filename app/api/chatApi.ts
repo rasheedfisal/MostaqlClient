@@ -66,7 +66,11 @@ export const createChatFn = async (
   privateAuthApi.defaults.headers.common[
     "Authorization"
   ] = `Bearer ${accessToken}`;
-  const response = await privateAuthApi.post<IChat>("conversations", chat);
+  const response = await privateAuthApi.post<IChat>("conversations", chat, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 export const getAllUsersChatFn = async (
