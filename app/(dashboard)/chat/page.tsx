@@ -7,6 +7,7 @@ import useAccessToken from "../../../hooks/useAccessToken";
 import useUpdateEffect from "../../../hooks/useUpdateEffect";
 import { ISysUser } from "../../../typings";
 import {
+  ActiveUser,
   createChatFn,
   getAllLastChatUsersFn,
   getAllUsersChatFn,
@@ -51,6 +52,8 @@ const page = () => {
   const skt = stateContext.socketState.socket;
   const [fileUrl, setFileUrl] = useState("");
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
 
   const {
     fetchNextPage, //function
@@ -83,7 +86,8 @@ const page = () => {
     id: string,
     email: string,
     fullname: string,
-    imgPath: string
+    imgPath: string,
+    is_online: boolean
   ): void => {
     const user: ISysUser = {
       id: id,
@@ -92,6 +96,7 @@ const page = () => {
       imgPath: imgPath,
       is_active: true,
       phone: "0000",
+      is_online: is_online,
     };
     stateContext.chatDispatch({
       type: "SET_Current_Chat",
@@ -110,13 +115,21 @@ const page = () => {
           {chatuser.sender_id === stateContext.state.authUser?.id ? (
             <>
               <img
-                className="object-cover w-10 h-10 rounded-full"
+                className="relative object-cover w-10 h-10 rounded-full"
                 src={
                   env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.receiver_img ??
                   "/noImg.jpg"
                 }
                 alt="username"
-              />
+              >
+                {!!activeUsers.find(
+                  (x) => x.userId === chatuser.receiver_email
+                ) ? (
+                  <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+                ) : (
+                  <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+                )}
+              </img>
               <div
                 className="w-full pb-2"
                 onClick={() =>
@@ -124,7 +137,10 @@ const page = () => {
                     chatuser.receiver_id,
                     chatuser.receiver_email,
                     chatuser.receiver_name,
-                    chatuser.receiver_img ?? ""
+                    chatuser.receiver_img ?? "",
+                    !!activeUsers.find(
+                      (x) => x.userId === chatuser.receiver_email
+                    )
                   )
                 }
               >
@@ -158,13 +174,21 @@ const page = () => {
           ) : (
             <>
               <img
-                className="object-cover w-10 h-10 rounded-full"
+                className="relative object-cover w-10 h-10 rounded-full"
                 src={
                   env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.sender_img ??
                   "/noImg.jpg"
                 }
                 alt="username"
-              />
+              >
+                {!!activeUsers.find(
+                  (x) => x.userId === chatuser.sender_email
+                ) ? (
+                  <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+                ) : (
+                  <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+                )}
+              </img>
               <div
                 className="w-full pb-2"
                 onClick={() =>
@@ -172,7 +196,10 @@ const page = () => {
                     chatuser.sender_id,
                     chatuser.sender_email,
                     chatuser.sender_name,
-                    chatuser.sender_img ?? ""
+                    chatuser.sender_img ?? "",
+                    !!activeUsers.find(
+                      (x) => x.userId === chatuser.sender_email
+                    )
                   )
                 }
               >
@@ -261,6 +288,20 @@ const page = () => {
         recevedMsg.receiver_id === stateContext.state.authUser?.email &&
         setChat((prev) => [...prev, recevedMsg]);
     });
+    skt?.on("typing", (data) => {
+      if (data.receiver_id === currentChat?.email) {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+        }, 2000);
+      }
+    });
+
+    skt?.on("getUsers", (data: ActiveUser[]) => {
+      if (data.length > 0) {
+        setActiveUsers(data);
+      }
+    });
   }, [skt]);
 
   useUpdateEffect(() => {
@@ -313,6 +354,16 @@ const page = () => {
       });
     }
   }, [error]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const receiverId = currentChat?.email;
+
+    if (event.key !== "Enter") {
+      if (!isTyping) {
+        skt?.emit("typing", { receiverId });
+      }
+    }
+  };
 
   const onSubmitHandler: SubmitHandler<ICreateMessage> = async (values) => {
     try {
@@ -489,7 +540,12 @@ const page = () => {
                     }
                   />
 
-                  <FormSearch label="message..." name="message" type="text" />
+                  <FormSearch
+                    label="message..."
+                    name="message"
+                    type="text"
+                    onKeyDown={handleKeyDown}
+                  />
 
                   <button type="submit">
                     <svg
@@ -576,12 +632,24 @@ const page = () => {
               alt="avatar"
               loading="lazy"
             />
-            <span className="block ml-2 font-bold text-gray-600">
-              {currentChat
-                ? currentChat?.fullname
-                : "search or select user to start the chat"}
-            </span>
-            <span className="absolute w-3 h-3 bg-green-600 rounded-full left-10 top-3"></span>
+            <div className="block space-y-2">
+              <span className="block ml-2 font-bold text-gray-600">
+                {currentChat
+                  ? currentChat?.fullname
+                  : "search or select user to start the chat"}
+              </span>
+              {isTyping && (
+                <p className="block ml-2 font-bold text-gray-600 text-sm">
+                  typing...
+                </p>
+              )}
+            </div>
+
+            {currentChat.is_online ? (
+              <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+            ) : (
+              <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+            )}
           </div>
           <div className="relative w-full p-6 overflow-y-auto h-[calc(100vh_-_13.5rem)]">
             <ul className="space-y-2">
@@ -734,7 +802,12 @@ const page = () => {
                   }
                 />
 
-                <FormSearch label="message..." name="message" type="text" />
+                <FormSearch
+                  label="message..."
+                  name="message"
+                  type="text"
+                  onKeyDown={handleKeyDown}
+                />
                 <button type="submit" ref={buttonRef}>
                   {loadingMessage ? (
                     <svg

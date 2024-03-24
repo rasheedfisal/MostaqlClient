@@ -16,6 +16,11 @@ interface LastChat {
   receiver_img: string | null;
 }
 
+export type ActiveUser = {
+  userId: string;
+  socketId: string;
+};
+
 export const getAllChatUsersFn = async (
   accessToken: string | undefined,
   pageNo: number,

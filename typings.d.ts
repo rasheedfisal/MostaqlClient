@@ -17,6 +17,7 @@ export interface ISysUser {
   Role?: IRole;
   CreatedAt?: Date;
   wallet?: IWallet;
+  is_online: boolean;
 }
 export interface IWallet {
   credit: number;

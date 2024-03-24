@@ -1,13 +1,12 @@
 import { FC } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-type IFormInputProps = {
+interface IFormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   label: string;
-  type: string;
-};
+}
 
-const FormSearch: FC<IFormInputProps> = ({ name, label, type }) => {
+const FormSearch: FC<IFormInputProps> = ({ name, label, type, ...props }) => {
   const {
     control,
     formState: { errors },
@@ -31,6 +30,7 @@ const FormSearch: FC<IFormInputProps> = ({ name, label, type }) => {
               errors[name] ? errors[name]?.message?.toString() : label
             }
             autoComplete="off"
+            {...props}
           />
           {/* {errors[name] && (
             <div className="mb-3 text-sm block text-red-500">

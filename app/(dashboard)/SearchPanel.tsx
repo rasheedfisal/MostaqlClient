@@ -3,12 +3,13 @@ import React, { MouseEventHandler, RefObject, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import useAccessToken from "../../hooks/useAccessToken";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { getAllChatUsersFn } from "../api/chatApi";
+import { ActiveUser, getAllChatUsersFn } from "../api/chatApi";
 import { toast } from "react-toastify";
 import { ISysUser } from "../../typings";
 import { useStateContext } from "../../context/AppConext";
 import useDebounce from "../../hooks/useDebounce";
 import useIntersectionObserver from "../../hooks/useIntersectionObserver";
+import useUpdateEffect from "../../hooks/useUpdateEffect";
 
 type SearchPanelProps = {
   SearchPanelRef: RefObject<HTMLInputElement>;
@@ -18,6 +19,8 @@ type SearchPanelProps = {
 function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
   const token = useAccessToken();
   const stateContext = useStateContext();
+  const skt = stateContext.socketState.socket;
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const debouncedSearchQuery = useDebounce(searchQuery, 700);
 
@@ -39,6 +42,14 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
     },
     initialPageParam: 1,
   });
+
+  useUpdateEffect(() => {
+    skt?.on("getUsers", (data: ActiveUser[]) => {
+      if (data.length > 0) {
+        setActiveUsers(data);
+      }
+    });
+  }, [skt]);
   const lastUserRef = useRef<HTMLDivElement>(null);
 
   useIntersectionObserver({
@@ -67,7 +78,7 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
         <span
           key={chatuser.id}
           onClick={() => setCurrentChatUser(chatuser)}
-          className="flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
+          className="relative flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
         >
           <div className="flex-shrink-0">
             <img
@@ -88,6 +99,11 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
               {chatuser.Role?.role_name}
             </span>
           </div>
+          {!!activeUsers.find((x) => x.userId === chatuser.email) ? (
+            <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+          ) : (
+            <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+          )}
         </span>
       );
     });
