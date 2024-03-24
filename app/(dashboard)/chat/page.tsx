@@ -637,18 +637,20 @@ const page = () => {
               alt="avatar"
               loading="lazy"
             />
-            <div className="block space-y-2">
-              <span className="block ml-2 font-bold text-gray-600">
-                {currentChat
-                  ? currentChat?.fullname
-                  : "search or select user to start the chat"}
-              </span>
-              {isTyping && (
-                <p className="block ml-2 font-bold text-gray-600 text-sm">
-                  typing...
-                </p>
-              )}
-            </div>
+
+            <span className="flex ml-2 flex-col items-center justify-start font-bold text-gray-600">
+              {currentChat
+                ? currentChat?.fullname
+                : "search or select user to start the chat"}
+
+              <p
+                className={`font-bold text-gray-600 text-sm ${
+                  isTyping ? "visible" : "invisible"
+                }`}
+              >
+                typing...
+              </p>
+            </span>
 
             {currentChat.is_online ? (
               <span className="absolute w-3 h-3 bg-green-600 rounded-full left-10 top-3"></span>

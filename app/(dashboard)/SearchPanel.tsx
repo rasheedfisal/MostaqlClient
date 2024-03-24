@@ -46,8 +46,6 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
   useUpdateEffect(() => {
     skt?.emit("active-users");
     skt?.on("getUsers", (data: ActiveUser[]) => {
-      console.log("active-users", data);
-
       if (data.length > 0) {
         setActiveUsers(data);
       }
@@ -80,7 +78,12 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
       return (
         <span
           key={chatuser.id}
-          onClick={() => setCurrentChatUser(chatuser)}
+          onClick={() =>
+            setCurrentChatUser({
+              ...chatuser,
+              is_online: !!activeUsers.find((x) => x.userId === chatuser.email),
+            })
+          }
           className="flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
         >
           <div className="relative flex-shrink-0">
