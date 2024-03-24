@@ -114,22 +114,25 @@ const page = () => {
         >
           {chatuser.sender_id === stateContext.state.authUser?.id ? (
             <>
-              <img
-                className="relative object-cover w-10 h-10 rounded-full"
-                src={
-                  env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.receiver_img ??
-                  "/noImg.jpg"
-                }
-                alt="username"
-              >
+              <div className="relative rounded-full w-10 h-10">
+                <img
+                  className="w-full object-cover"
+                  src={
+                    env.NEXT_PUBLIC_BASE_API_URL +
+                      "/" +
+                      chatuser.receiver_img ?? "/noImg.jpg"
+                  }
+                  alt="username"
+                />
                 {!!activeUsers.find(
                   (x) => x.userId === chatuser.receiver_email
                 ) ? (
-                  <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+                  <span className="absolute w-3 h-3 bg-green-600 rounded-full right-0 -top-1"></span>
                 ) : (
-                  <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+                  <span className="absolute w-3 h-3 bg-gray-600 rounded-full right-0 -top-1"></span>
                 )}
-              </img>
+              </div>
+
               <div
                 className="w-full pb-2"
                 onClick={() =>
@@ -173,22 +176,24 @@ const page = () => {
             </>
           ) : (
             <>
-              <img
-                className="relative object-cover w-10 h-10 rounded-full"
-                src={
-                  env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.sender_img ??
-                  "/noImg.jpg"
-                }
-                alt="username"
-              >
+              <div className="relative rounded-full w-10 h-10">
+                <img
+                  className="w-full object-cover"
+                  src={
+                    env.NEXT_PUBLIC_BASE_API_URL + "/" + chatuser.sender_img ??
+                    "/noImg.jpg"
+                  }
+                  alt="username"
+                />
                 {!!activeUsers.find(
                   (x) => x.userId === chatuser.sender_email
                 ) ? (
-                  <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+                  <span className="absolute w-3 h-3 bg-green-600 rounded-full right-0 -top-1"></span>
                 ) : (
-                  <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+                  <span className="absolute w-3 h-3 bg-gray-600 rounded-full right-0 -top-1"></span>
                 )}
-              </img>
+              </div>
+
               <div
                 className="w-full pb-2"
                 onClick={() =>
@@ -296,7 +301,7 @@ const page = () => {
         }, 2000);
       }
     });
-
+    skt?.emit("active-users");
     skt?.on("getUsers", (data: ActiveUser[]) => {
       if (data.length > 0) {
         setActiveUsers(data);
@@ -487,7 +492,7 @@ const page = () => {
               <span className="block ml-2 font-bold text-gray-600">
                 search or select user to start the chat
               </span>
-              <span className="absolute w-3 h-3 bg-green-600 rounded-full left-10 top-3"></span>
+              <span className="absolute w-3 h-3 bg-gray-600 rounded-full left-10 top-3"></span>
             </div>
             <div className="relative w-full p-6 overflow-y-auto h-[calc(100vh_-_13.5rem)]">
               <ul className="space-y-2">
@@ -646,9 +651,9 @@ const page = () => {
             </div>
 
             {currentChat.is_online ? (
-              <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
+              <span className="absolute w-3 h-3 bg-green-600 rounded-full left-10 top-3"></span>
             ) : (
-              <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
+              <span className="absolute w-3 h-3 bg-gray-600 rounded-full left-10 top-3"></span>
             )}
           </div>
           <div className="relative w-full p-6 overflow-y-auto h-[calc(100vh_-_13.5rem)]">

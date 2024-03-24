@@ -44,7 +44,10 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
   });
 
   useUpdateEffect(() => {
+    skt?.emit("active-users");
     skt?.on("getUsers", (data: ActiveUser[]) => {
+      console.log("active-users", data);
+
       if (data.length > 0) {
         setActiveUsers(data);
       }
@@ -78,15 +81,20 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
         <span
           key={chatuser.id}
           onClick={() => setCurrentChatUser(chatuser)}
-          className="relative flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
+          className="flex space-x-4 p-2 hover:bg-primary-lighter rounded-md"
         >
-          <div className="flex-shrink-0">
+          <div className="relative flex-shrink-0">
             <img
               className="w-10 h-10 rounded-lg"
               src={chatuser.imgPath ?? "/noImg.jpg"}
               alt="avatar"
               loading="lazy"
             />
+            {!!activeUsers.find((x) => x.userId === chatuser.email) ? (
+              <span className="absolute w-3 h-3 bg-green-600 rounded-full right-0 -top-1"></span>
+            ) : (
+              <span className="absolute w-3 h-3 bg-gray-600 rounded-full right-0 -top-1"></span>
+            )}
           </div>
           <div className="flex-1 max-w-xs overflow-hidden">
             <h4 className="text-sm font-semibold  dark:text-light">
@@ -99,11 +107,6 @@ function SearchPanel({ SearchPanelRef, handleClick }: SearchPanelProps) {
               {chatuser.Role?.role_name}
             </span>
           </div>
-          {!!activeUsers.find((x) => x.userId === chatuser.email) ? (
-            <span className="absolute w-4 h-4 bg-green-600 rounded-full left-10 top-3"></span>
-          ) : (
-            <span className="absolute w-4 h-4 bg-gray-600 rounded-full left-10 top-3"></span>
-          )}
         </span>
       );
     });
