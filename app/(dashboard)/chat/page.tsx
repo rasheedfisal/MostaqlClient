@@ -298,7 +298,7 @@ const page = () => {
         setIsTyping(true);
         setTimeout(() => {
           setIsTyping(false);
-        }, 2000);
+        }, 1000);
       }
     });
     skt?.emit("active-users");
