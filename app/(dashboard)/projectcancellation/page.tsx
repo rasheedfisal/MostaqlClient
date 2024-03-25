@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   getCloseProjectRequestFn,
@@ -31,16 +36,14 @@ const page = () => {
     isPlaceholderData,
     data: items,
     isSuccess,
-    error
-  } = useQuery(
-    {
-      queryKey: ["projectcancellation", pageNumber, pageSize],
-      queryFn: () => getCloseProjectRequestFn(token, pageNumber, pageSize),
-      select: (data) => data,
-      retry: 1,
-      placeholderData: keepPreviousData
-    }
-  );
+    error,
+  } = useQuery({
+    queryKey: ["projectcancellation", pageNumber, pageSize],
+    queryFn: () => getCloseProjectRequestFn(token, pageNumber, pageSize),
+    select: (data) => data,
+    retry: 1,
+    placeholderData: keepPreviousData,
+  });
 
   useUpdateEffect(() => {
     if (
@@ -48,17 +51,15 @@ const page = () => {
       items?.results.length !== undefined &&
       items?.results.length > 0
     ) {
-      queryClient.prefetchQuery(
-       { queryKey: ["projectcancellation", pageNumber, pageSize],
-        queryFn: () => getCloseProjectRequestFn(token, pageNumber, pageSize)}
-      );
+      queryClient.prefetchQuery({
+        queryKey: ["projectcancellation", pageNumber, pageSize],
+        queryFn: () => getCloseProjectRequestFn(token, pageNumber, pageSize),
+      });
     }
   }, [items, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isPending: isAccepting, mutate: approveorreject } = useMutation(
-    
-    {
-      mutationFn: ({
+  const { isPending: isAccepting, mutate: approveorreject } = useMutation({
+    mutationFn: ({
       id,
       accessToken,
       accepted,
@@ -68,15 +69,14 @@ const page = () => {
       accepted: boolean;
     }) =>
       approveRejectProjectCancellationRequestFn({ id, accessToken, accepted }),
-      onSuccess: () => {
-        queryClient.invalidateQueries({queryKey:["projectcancellation"]});
-        toast.success("Status Changed successfully");
-      },
-      onError: (error) => {
-         toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projectcancellation"] });
+      toast.success("Status Changed successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
   const handleApproveOrReject = (id: string, accepted: boolean) => {
     if (
@@ -101,36 +101,35 @@ const page = () => {
       imgPath: user.avatar!,
       is_active: user.is_active!,
       phone: user.phone!,
+      is_online: false,
     };
     return setUser;
   };
 
-
   useUpdateEffect(() => {
     if (isSuccess) {
       if (items?.totalItems) {
-          setRecords(items.totalItems);
-        }
-        if (items?.currentPage) {
-          setPageNumber(items.currentPage);
-        }
-        if (items?.totalPages) {
-          setPages(items.totalPages);
-        }
+        setRecords(items.totalItems);
+      }
+      if (items?.currentPage) {
+        setPageNumber(items.currentPage);
+      }
+      if (items?.totalPages) {
+        setPages(items.totalPages);
+      }
     }
-  }, [isSuccess])
+  }, [isSuccess]);
 
-   useUpdateEffect(() => {
+  useUpdateEffect(() => {
     if (error !== null) {
-      toast.error(error.message, {position: "top-right"});
+      toast.error(error.message, { position: "top-right" });
     }
-  }, [error])
+  }, [error]);
 
   if (isLoading) {
     return <p>Loading...</p>;
   }
 
- 
   return (
     <>
       {/* <!-- Content header --> */}

@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   getAllCompletedProjectRequest,
@@ -31,18 +36,14 @@ const page = () => {
     isPlaceholderData,
     data: items,
     isSuccess,
-    error
-  } = useQuery(
-    
-    
-    {
-      queryKey: ["completedprojects", pageNumber, pageSize],
-      queryFn: () => getAllCompletedProjectRequest(token, pageNumber, pageSize),
-      select: (data) => data,
-      retry: 1,
-      placeholderData: keepPreviousData
-    }
-  );
+    error,
+  } = useQuery({
+    queryKey: ["completedprojects", pageNumber, pageSize],
+    queryFn: () => getAllCompletedProjectRequest(token, pageNumber, pageSize),
+    select: (data) => data,
+    retry: 1,
+    placeholderData: keepPreviousData,
+  });
 
   useUpdateEffect(() => {
     if (
@@ -50,17 +51,16 @@ const page = () => {
       items?.results.length !== undefined &&
       items?.results.length > 0
     ) {
-      queryClient.prefetchQuery(
-        {queryKey:["completedprojects", pageNumber, pageSize],
-        queryFn:() => getAllCompletedProjectRequest(token, pageNumber, pageSize)}
-      );
+      queryClient.prefetchQuery({
+        queryKey: ["completedprojects", pageNumber, pageSize],
+        queryFn: () =>
+          getAllCompletedProjectRequest(token, pageNumber, pageSize),
+      });
     }
   }, [items, pageNumber, pageSize, isPlaceholderData, queryClient]);
 
-  const { isPending: isAccepting, mutate: approveorreject } = useMutation(
-   
-    {
-      mutationFn:  ({
+  const { isPending: isAccepting, mutate: approveorreject } = useMutation({
+    mutationFn: ({
       id,
       accessToken,
       offerId,
@@ -69,20 +69,17 @@ const page = () => {
       accessToken: string;
       offerId: string;
     }) => approveCompleteProjectRequestFn({ id, accessToken, offerId }),
-      onSuccess: () => {
-        queryClient.invalidateQueries({queryKey:["completedprojects"]});
-        toast.success("Status Changed successfully");
-      },
-      onError: (error) => {
-         toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["completedprojects"] });
+      toast.success("Status Changed successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
-  const { isPending: isTransfering, mutate: transferMoney } = useMutation(
-   
-    {
-      mutationFn:  ({
+  const { isPending: isTransfering, mutate: transferMoney } = useMutation({
+    mutationFn: ({
       id,
       accessToken,
       offerId,
@@ -91,15 +88,14 @@ const page = () => {
       accessToken: string;
       offerId: string;
     }) => transferCompletedProjectMoneyFn({ id, accessToken, offerId }),
-      onSuccess: () => {
-        queryClient.invalidateQueries({queryKey:["completedprojects"]});
-        toast.success("Money Transfered successfully");
-      },
-      onError: (error) => {
-         toast.error(error.message, {position: "top-right"});
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["completedprojects"] });
+      toast.success("Money Transfered successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message, { position: "top-right" });
+    },
+  });
 
   const handleApproveOrReject = (id: string, offerId: string) => {
     if (confirm(`are you sure you want to approve this request?`)) {
@@ -128,34 +124,33 @@ const page = () => {
       imgPath: user.avatar!,
       is_active: true,
       phone: "099999933",
+      is_online: false,
     };
     return setUser;
   };
   useUpdateEffect(() => {
     if (isSuccess) {
       if (items?.totalItems) {
-          setRecords(items.totalItems);
-        }
-        if (items?.currentPage) {
-          setPageNumber(items.currentPage);
-        }
-        if (items?.totalPages) {
-          setPages(items.totalPages);
-        }
+        setRecords(items.totalItems);
+      }
+      if (items?.currentPage) {
+        setPageNumber(items.currentPage);
+      }
+      if (items?.totalPages) {
+        setPages(items.totalPages);
+      }
     }
-  }, [isSuccess])
+  }, [isSuccess]);
 
-   useUpdateEffect(() => {
+  useUpdateEffect(() => {
     if (error !== null) {
-      toast.error(error.message, {position: "top-right"});
+      toast.error(error.message, { position: "top-right" });
     }
-  }, [error])
+  }, [error]);
 
   if (isLoading) {
     return <p>Loading...</p>;
   }
-
-
 
   return (
     <>

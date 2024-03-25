@@ -638,7 +638,7 @@ const page = () => {
               loading="lazy"
             />
 
-            <span className="flex ml-2 flex-col items-center justify-start font-bold text-gray-600">
+            <span className="flex ml-2 flex-col items-start justify-start font-bold text-gray-600">
               {currentChat
                 ? currentChat?.fullname
                 : "search or select user to start the chat"}
