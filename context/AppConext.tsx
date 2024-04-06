@@ -65,12 +65,8 @@ const initialNotificationState: NotificationState = {
   notification: null,
 };
 const initialSocketState: SocketState = {
-  // socket: io("http://194.195.87.30:89", {
-  //   transports: ["websocket", "polling"],
-  //   autoConnect: false,
-  // }),
   socket: io(env.NEXT_PUBLIC_WS_URL),
-  // socket: io("http://localhost:3002"),
+  //socket: io(env.NEXT_PUBLIC_WS_URL, { secure: true }) //for ssl,
 };
 
 type StateContextProviderProps = { children: React.ReactNode };
